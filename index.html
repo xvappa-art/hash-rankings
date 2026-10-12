@@ -3,260 +3,135 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HASH RANKINGS</title>
 <style>
 :root {
-  --bg: #10110f;
-  --panel: #191b18;
-  --panel2: #20231e;
-  --lime: #c5ff45;
-  --text: #f4f5ef;
-  --muted: #92968c;
-  --border: #30332c;
-  --red: #ff6868;
+  --bg:#10110f;--panel:#191b18;--panel2:#20231e;
+  --lime:#c5ff45;--text:#f4f5ef;--muted:#92968c;
+  --border:#30332c;--red:#ff6868;
 }
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, Arial, sans-serif;
-}
-button, input, textarea, select { font: inherit; }
-button { cursor: pointer; }
-header {
-  border-bottom: 1px solid var(--border);
-  padding: 22px 6%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-.logo { font-size: 21px; font-weight: 900; letter-spacing: 1.5px; }
-.logo span { color: var(--lime); }
-.status { color: var(--muted); font-size: 12px; }
-main { max-width: 1000px; padding: 40px 20px 70px; margin: auto; }
-.eyebrow {
-  color: var(--lime);
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  font-size: 11px;
-  font-weight: 800;
-}
-h1 { font-size: clamp(34px, 7vw, 62px); line-height: 1; margin: 12px 0; letter-spacing: -2px; }
-.subtitle { color: var(--muted); margin-bottom: 30px; }
-.stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: 28px;
-}
-.stat { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
-.stat strong { display: block; font-size: 28px; color: var(--lime); }
-.stat small { color: var(--muted); }
-.toolbar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
-input, textarea, select {
-  background: var(--panel2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 12px;
-  min-width: 0;
-  outline: none;
-}
-input:focus, textarea:focus, select:focus { border-color: var(--lime); }
-#search { flex: 1; min-width: 160px; }
-.btn {
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  padding: 11px 15px;
-  background: var(--panel2);
-  color: var(--text);
-  font-weight: 750;
-}
-.btn:hover { border-color: var(--lime); }
-.btn.primary { background: var(--lime); color: #14160f; border-color: var(--lime); }
-.btn.danger { color: var(--red); }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,Arial,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+header{padding:20px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.logo{font-size:21px;font-weight:950;letter-spacing:1.5px}
+.logo span{color:var(--lime)}
+.muted,.status{color:var(--muted);font-size:12px}
+main{max-width:1000px;padding:35px 18px 65px;margin:auto}
+.eyebrow{color:var(--lime);font-size:11px;letter-spacing:3px;font-weight:900;text-transform:uppercase}
+h1{font-size:clamp(34px,7vw,60px);line-height:1;margin:12px 0;letter-spacing:-2px}
+.subtitle{color:var(--muted);margin-bottom:28px}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:25px}
+.stat,.feature-card,.podium-card,.profile-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:17px}
+.stat strong{display:block;color:var(--lime);font-size:28px}
+.stat small{color:var(--muted)}
+.toolbar{display:flex;flex-wrap:wrap;gap:9px;margin:20px 0}
+input,textarea,select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:11px;min-width:0;width:100%}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--lime)}
+#search{flex:1;min-width:150px;width:auto}
+.toolbar select{width:auto}
+.btn{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:9px;padding:10px 13px;font-weight:750}
+.btn:hover{border-color:var(--lime)}
+.btn.primary{background:var(--lime);color:#14160f;border-color:var(--lime)}
+.btn.danger{color:var(--red)}
+.section-heading{font-size:12px;color:var(--muted);font-weight:900;letter-spacing:1.5px;margin-bottom:12px}
+.podium-section,.feature-grid{margin:25px 0}
+.podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end}
+.podium-card{text-align:center;overflow-wrap:anywhere}
+.podium-card.place-1{order:2;border-color:var(--lime);padding-top:26px}
+.podium-card.place-2{order:1}.podium-card.place-3{order:3}
+.podium-place{font-size:11px;font-weight:900;color:var(--muted)}
+.podium-avatar,.avatar{background:#292d23;color:var(--lime);display:grid;place-items:center;overflow:hidden;font-weight:900}
+.podium-avatar{width:45px;height:45px;border-radius:12px;margin:12px auto}
+.podium-avatar img,.avatar img,.profile-avatar img,.extra-photo img{width:100%;height:100%;object-fit:cover}
+.podium-name{font-weight:850;overflow-wrap:anywhere;margin:8px 0}
+.podium-score,.lime{color:var(--lime);font-weight:900}
+.feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.feature-title{font-weight:900;margin-bottom:12px}
+.feature-empty{color:var(--muted);font-size:12px;line-height:1.5}
+.movement-list{display:grid;gap:12px}
+.movement-item{display:flex;align-items:center;gap:9px}
+.movement-avatar{width:36px;height:36px;flex-shrink:0;border-radius:10px;overflow:hidden;background:#292d23;color:var(--lime);display:grid;place-items:center}
+.movement-info{flex:1;min-width:0}
+.movement-name{font-weight:800;font-size:13px;overflow-wrap:anywhere}
+.movement-detail{color:var(--muted);font-size:11px;margin-top:3px}
+.movement-change{font-weight:900;font-size:13px}
+.up{color:var(--lime)}.down{color:var(--red)}
+.board{border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.board-head,.member{display:grid;grid-template-columns:45px minmax(0,1fr) 65px 72px;gap:9px;align-items:center;padding:13px}
+.board-head{background:var(--panel);color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.member{border-top:1px solid var(--border)}
+.member:hover{background:#171914}
+.rank{color:var(--muted);font-weight:850}.rank.top{color:var(--lime)}
+.person{display:flex;gap:10px;align-items:center;min-width:0;cursor:pointer}
+.avatar{width:42px;height:42px;border-radius:11px;flex-shrink:0}
+.person-name{font-weight:850;overflow-wrap:anywhere}
+.person-name:hover{color:var(--lime)}
+.person-title{color:var(--lime);font-size:11px;margin-top:3px}
+.person-note{color:var(--muted);font-size:11px;margin-top:3px;overflow-wrap:anywhere}
+.score{font-size:17px;font-weight:900;color:var(--lime)}
+.actions{display:flex;justify-content:flex-end;gap:4px}
+.icon-btn{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;width:29px;height:32px}
+.icon-btn:hover{color:var(--lime);border-color:var(--lime)}
+.empty{text-align:center;padding:40px 12px;color:var(--muted)}
+footer{text-align:center;color:var(--muted);font-size:12px;line-height:1.6;margin-top:25px}
 
-/* TOP 3 PODIUM */
-.podium-section, .feature-grid { margin: 26px 0; }
-.section-heading {
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 1.8px;
-  margin-bottom: 12px;
-}
-.podium {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: end;
-  gap: 12px;
-}
-.podium-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 18px 8px;
-  text-align: center;
-  overflow-wrap: anywhere;
-}
-.podium-card.place-1 {
-  order: 2;
-  border-color: var(--lime);
-  padding-top: 28px;
-  padding-bottom: 28px;
-}
-.podium-card.place-2 { order: 1; }
-.podium-card.place-3 { order: 3; }
-.podium-place { color: var(--muted); font-weight: 900; font-size: 12px; }
-.podium-card.place-1 .podium-place { color: var(--lime); }
-.podium-avatar, .movement-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  margin: 12px auto;
-  background: #292d23;
-  color: var(--lime);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  font-weight: 900;
-}
-.podium-avatar img, .movement-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.podium-name { font-weight: 850; margin: 8px 0; }
-.podium-score { color: var(--lime); font-weight: 900; }
-
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-.feature-card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 16px;
-  min-width: 0;
-}
-.feature-title { font-weight: 900; margin-bottom: 14px; }
-.movement-list { display: grid; gap: 12px; }
-.movement-item { display: flex; align-items: center; gap: 9px; }
-.movement-avatar {
-  width: 36px;
-  height: 36px;
-  flex-shrink: 0;
-  margin: 0;
-}
-.movement-info { flex: 1; min-width: 0; }
-.movement-name { font-weight: 800; overflow-wrap: anywhere; font-size: 13px; }
-.movement-detail { color: var(--muted); font-size: 11px; margin-top: 3px; }
-.movement-change { font-size: 13px; font-weight: 900; white-space: nowrap; }
-.movement-change.up { color: var(--lime); }
-.movement-change.down { color: var(--red); }
-.feature-empty { color: var(--muted); font-size: 12px; line-height: 1.5; }
-
-/* LEADERBOARD */
-.board { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-.board-head {
-  background: var(--panel);
-  color: var(--muted);
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 1.4px;
-  padding: 14px 18px;
-  display: grid;
-  grid-template-columns: 48px 1fr 85px 90px;
-  gap: 12px;
-}
-.member {
-  display: grid;
-  grid-template-columns: 48px 1fr 85px 90px;
-  gap: 12px;
-  align-items: center;
-  padding: 14px 18px;
-  border-top: 1px solid var(--border);
-}
-.member:hover { background: #171914; }
-.rank { color: var(--muted); font-weight: 800; }
-.rank.top { color: var(--lime); }
-.person { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.avatar {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border-radius: 12px;
-  background: #292d23;
-  color: var(--lime);
-  display: grid;
-  place-items: center;
-  font-size: 17px;
-  font-weight: 900;
-  overflow: hidden;
-}
-.avatar img { width: 100%; height: 100%; object-fit: cover; }
-.person-name { font-weight: 800; overflow-wrap: anywhere; }
-.person-note { color: var(--muted); font-size: 12px; margin-top: 4px; overflow-wrap: anywhere; }
-.score { color: var(--lime); font-weight: 900; font-size: 18px; }
-.actions { display: flex; gap: 6px; justify-content: flex-end; }
-.icon-btn {
-  background: transparent;
-  color: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 7px;
-  width: 34px;
-  height: 34px;
-}
-.icon-btn:hover { color: var(--lime); border-color: var(--lime); }
-.empty { text-align: center; padding: 45px 15px; color: var(--muted); }
-footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 22px; line-height: 1.6; }
-dialog {
-  width: min(440px, calc(100% - 28px));
-  background: var(--panel);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 22px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-dialog::backdrop { background: #000b; }
-dialog h2 { margin: 0 0 18px; }
-.form-field { display: grid; gap: 7px; margin-bottom: 15px; }
-.form-field label { color: var(--muted); font-size: 12px; font-weight: 700; }
-.form-field input, .form-field textarea { width: 100%; }
-.form-field textarea { resize: vertical; min-height: 72px; }
-.form-buttons { display: flex; gap: 9px; justify-content: flex-end; margin-top: 20px; }
-.photo-preview { width: 68px; height: 68px; border-radius: 12px; object-fit: cover; background: var(--panel2); }
-
-@media (max-width: 520px) {
-  main { padding: 30px 12px 50px; }
-  header { padding: 18px 14px; }
-  .status { display: none; }
-  .board-head, .member {
-    grid-template-columns: 27px minmax(0,1fr) 55px 66px;
-    gap: 7px;
-    padding: 12px 9px;
-  }
-  .avatar { width: 38px; height: 38px; border-radius: 10px; }
-  .person { gap: 8px; }
-  .actions { gap: 3px; }
-  .icon-btn { width: 29px; height: 31px; }
-  .score { font-size: 16px; }
-  .feature-grid { grid-template-columns: 1fr; }
-  .podium { gap: 6px; }
-  .podium-card { padding: 14px 4px; }
-  .podium-avatar { width: 40px; height: 40px; }
-  .podium-name { font-size: 12px; }
+/* DIALOGS */
+dialog{width:min(650px,calc(100% - 22px));max-height:92vh;overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:17px;padding:20px}
+dialog::backdrop{background:#000c}
+dialog h2{margin:0 0 18px}
+.form-field{display:grid;gap:7px;margin-bottom:14px}
+.form-field label{font-size:12px;color:var(--muted);font-weight:750}
+.form-field textarea{min-height:75px;resize:vertical}
+.form-buttons,.profile-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;margin-top:18px}
+.help{font-size:11px;color:var(--muted);line-height:1.5}
+.influence-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.influence-inputs .form-field{margin:0}
+.profile-top{display:flex;align-items:center;gap:15px;margin-bottom:20px}
+.profile-avatar{width:82px;height:82px;flex-shrink:0;display:grid;place-items:center;overflow:hidden;background:#292d23;color:var(--lime);border-radius:17px;font-size:28px;font-weight:950}
+.profile-name{font-size:29px;font-weight:950;overflow-wrap:anywhere}
+.profile-title{color:var(--lime);font-size:13px;font-weight:800;margin-top:4px}
+.profile-score{display:inline-block;margin-top:9px;padding:7px 10px;border-radius:8px;background:#252b1b;color:var(--lime);font-weight:900}
+.profile-section{border-top:1px solid var(--border);padding:18px 0}
+.profile-section h3{font-size:12px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:0 0 13px}
+.profile-tags{display:flex;gap:7px;flex-wrap:wrap}
+.profile-tag{border:1px solid #414b2d;background:#252b1b;border-radius:100px;padding:7px 10px;color:var(--lime);font-size:12px;font-weight:800}
+.profile-overview{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px;color:#dedfd8}
+.tiktok-link{display:inline-block;padding:10px 13px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;color:var(--lime);text-decoration:none;overflow-wrap:anywhere}
+.tiktok-link:hover{border-color:var(--lime)}
+/* HEXAGON / RADAR CHART */
+.chart-wrap{max-width:430px;margin:auto}
+#influenceChart{width:100%;height:auto;display:block;overflow:visible}
+.chart-grid{fill:none;stroke:#41453b;stroke-width:1}
+.chart-axis{stroke:#41453b;stroke-width:1}
+.chart-area{fill:#c5ff45;fill-opacity:.23;stroke:#c5ff45;stroke-width:2.5;stroke-linejoin:round}
+.chart-dot{fill:#c5ff45;stroke:#10110f;stroke-width:1.5}
+.influence-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
+.influence-row{display:flex;justify-content:space-between;gap:8px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:11px;font-size:12px}
+.influence-row strong{color:var(--lime);white-space:nowrap}
+.extra-gallery{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.extra-photo{aspect-ratio:1/1;position:relative;overflow:hidden;border-radius:11px;border:1px solid var(--border);background:var(--panel2)}
+.extra-photo img{width:100%;height:100%;display:block;cursor:pointer}
+.extra-photo a{display:block;width:100%;height:100%}
+.extra-empty{color:var(--muted);font-size:12px}
+@media(max-width:520px){
+  main{padding:28px 10px 45px}
+  header{padding:18px 12px}.status{display:none}
+  .board-head,.member{grid-template-columns:25px minmax(0,1fr) 43px 60px;gap:5px;padding:10px 6px}
+  .board-head{font-size:9px;letter-spacing:.3px}
+  .avatar{width:34px;height:34px}.person{gap:6px}
+  .person-name{font-size:12px}.score{font-size:14px}
+  .icon-btn{width:26px}.actions{gap:2px}
+  .feature-grid{grid-template-columns:1fr}
+  .podium{gap:5px}.podium-card{padding:13px 4px}.podium-name{font-size:12px}
+  .profile-avatar{width:64px;height:64px}.profile-name{font-size:23px}
+  .influence-list{grid-template-columns:1fr}
+  .extra-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 </style>
 </head>
-
 <body>
 <header>
   <div class="logo">HASH <span>RANKINGS</span></div>
@@ -269,14 +144,8 @@ dialog h2 { margin: 0 0 18px; }
   <div class="subtitle">Track points, achievements, and bragging rights.</div>
 
   <section class="stats">
-    <div class="stat">
-      <strong id="memberCount">0</strong>
-      <small>MEMBERS</small>
-    </div>
-    <div class="stat">
-      <strong id="topScore">—</strong>
-      <small>HIGHEST SCORE</small>
-    </div>
+    <div class="stat"><strong id="memberCount">0</strong><small>MEMBERS</small></div>
+    <div class="stat"><strong id="topScore">—</strong><small>HIGHEST SCORE</small></div>
   </section>
 
   <section class="podium-section">
@@ -289,7 +158,6 @@ dialog h2 { margin: 0 0 18px; }
       <div class="feature-title">📈 Biggest Risers</div>
       <div id="risers" class="movement-list"></div>
     </div>
-
     <div class="feature-card">
       <div class="feature-title">📉 Biggest Drops</div>
       <div id="drops" class="movement-list"></div>
@@ -309,185 +177,280 @@ dialog h2 { margin: 0 0 18px; }
 
   <section class="board">
     <div class="board-head">
-      <div>Rank</div>
-      <div>Member</div>
-      <div>Points</div>
-      <div style="text-align:right">Edit</div>
+      <div>Rank</div><div>Member</div><div>Points</div><div style="text-align:right">Edit</div>
     </div>
     <div id="leaderboard"></div>
   </section>
 
-  <footer>
-    Your changes are saved in this browser on this device.<br>
-    This version does not sync changes to other people's devices.
-  </footer>
+  <footer>Changes are saved in this browser on this device.<br>This version does not sync changes to other people's devices.</footer>
 </main>
 
+<!-- MEMBER EDITOR -->
 <dialog id="memberDialog">
-  <form id="memberForm">
-    <h2 id="dialogTitle">Add member</h2>
-    <input type="hidden" id="memberId">
+<form id="memberForm">
+  <h2 id="dialogTitle">Add member</h2>
+  <input type="hidden" id="memberId">
 
-    <div class="form-field">
-      <label for="memberName">Name or nickname *</label>
-      <input id="memberName" maxlength="40" required placeholder="e.g. PlayerOne">
-    </div>
+  <div class="form-field">
+    <label for="memberName">Name or nickname *</label>
+    <input id="memberName" maxlength="40" required placeholder="e.g. Bass">
+  </div>
+  <div class="form-field">
+    <label for="memberScore">Overall score (0–100) *</label>
+    <input id="memberScore" type="number" min="0" max="100" step="1" value="50" required>
+  </div>
+  <div class="form-field">
+    <label for="memberTitle">Profile title</label>
+    <input id="memberTitle" maxlength="80" placeholder="Lord of the Mane">
+  </div>
+  <div class="form-field">
+    <label for="memberTikTok">TikTok profile URL</label>
+    <input id="memberTikTok" type="url" placeholder="https://www.tiktok.com/@username">
+  </div>
+  <div class="form-field">
+    <label for="memberTags">Profile tags (comma-separated)</label>
+    <input id="memberTags" maxlength="300" placeholder="hardmaxxer, chad, hair, mysterious, height">
+  </div>
+  <div class="form-field">
+    <label for="memberOverview">Overview</label>
+    <textarea id="memberOverview" maxlength="2000" placeholder="Profile description, achievements, and details..."></textarea>
+  </div>
 
-    <div class="form-field">
-      <label for="memberScore">Points (0–100) *</label>
-      <input id="memberScore" type="number" min="0" max="100" step="1" required value="50">
-    </div>
+  <div class="profile-section">
+    <h3>Influence Breakdown — edit every score</h3>
+    <div class="help">Enter a score from 0 to 30 for each category. The hexagon updates automatically on the profile.</div>
+    <div id="influenceInputs" class="influence-inputs"></div>
+  </div>
 
-    <div class="form-field">
-      <label for="memberNote">Achievement or note</label>
-      <textarea id="memberNote" maxlength="160" placeholder="e.g. Won the last tournament"></textarea>
-    </div>
+  <div class="form-field">
+    <label for="memberPhoto">Main profile photo</label>
+    <input id="memberPhoto" type="file" accept="image/*">
+    <div class="help">Optional. Choose an image up to 1 MB.</div>
+    <img id="photoPreview" alt="Photo preview" style="display:none;width:75px;height:75px;object-fit:cover;border-radius:12px;margin-top:8px">
+    <button class="btn" id="removePhoto" type="button" hidden>Remove main photo</button>
+  </div>
 
-    <div class="form-field">
-      <label for="memberPhoto">Photo (optional; get permission first)</label>
-      <input id="memberPhoto" type="file" accept="image/*">
-      <img id="photoPreview" class="photo-preview" alt="Photo preview" hidden>
-      <button class="btn" id="removePhoto" type="button" hidden>Remove photo</button>
-    </div>
+  <div class="form-field">
+    <label for="extraPhotosInput">Extra pictures (select multiple)</label>
+    <input id="extraPhotosInput" type="file" accept="image/*" multiple>
+    <div class="help">New pictures are added to this member's gallery. Each image must be 1 MB or smaller.</div>
+    <div id="extraPhotoCount" class="help"></div>
+    <button class="btn danger" id="clearExtraPhotos" type="button">Remove all extra pictures</button>
+  </div>
 
-    <div class="form-buttons">
-      <button class="btn" type="button" id="cancelBtn">Cancel</button>
-      <button class="btn primary" type="submit">Save member</button>
+  <div class="form-field">
+    <label for="memberNote">Short leaderboard note</label>
+    <input id="memberNote" maxlength="160" placeholder="Short note under their name">
+  </div>
+
+  <div class="form-buttons">
+    <button class="btn" type="button" id="cancelBtn">Cancel</button>
+    <button class="btn primary" type="submit">Save member</button>
+  </div>
+</form>
+</dialog>
+
+<!-- PROFILE VIEW -->
+<dialog id="profileDialog">
+  <div class="profile-top">
+    <div id="profileAvatar" class="profile-avatar"></div>
+    <div style="min-width:0">
+      <div id="profileName" class="profile-name"></div>
+      <div id="profileTitle" class="profile-title"></div>
+      <div id="profileScore" class="profile-score"></div>
     </div>
-  </form>
+  </div>
+
+  <section class="profile-section">
+    <h3>Profile tags</h3>
+    <div id="profileTags" class="profile-tags"></div>
+  </section>
+
+  <section class="profile-section">
+    <h3>TikTok</h3>
+    <div id="profileTikTok"></div>
+  </section>
+
+  <section class="profile-section">
+    <h3>Overview</h3>
+    <div id="profileOverview" class="profile-overview"></div>
+  </section>
+
+  <section class="profile-section">
+    <h3>Influence Breakdown</h3>
+    <div class="chart-wrap">
+      <svg id="influenceChart" viewBox="0 0 360 330" role="img" aria-label="Six-category influence hexagon"></svg>
+    </div>
+    <div id="influenceList" class="influence-list"></div>
+  </section>
+
+  <section class="profile-section">
+    <h3>Extra Pictures</h3>
+    <div id="extraGallery" class="extra-gallery"></div>
+  </section>
+
+  <div class="profile-actions">
+    <button class="btn primary" id="editProfileBtn" type="button">✎ Edit Profile</button>
+    <button class="btn" id="closeProfileBtn" type="button">Close</button>
+  </div>
 </dialog>
 
 <script>
 const STORAGE_KEY = "hash-rankings-v1";
 
+const categories = [
+  "Aesthetics",
+  "Frame",
+  "Facial Harmony",
+  "Status",
+  "Consistency",
+  "Momentum"
+];
+
+const defaultInfluence = {
+  "Aesthetics":8,
+  "Frame":5,
+  "Facial Harmony":20,
+  "Status":18,
+  "Consistency":5,
+  "Momentum":24
+};
+
 const starterMembers = [
-  { id: "demo-1", name: "Angel", score: 95, note: "Add an achievement", photo: "", created: 1 },
-  { id: "demo-2", name: "whostwizzy", score: 91, note: "Add an achievement", photo: "", created: 2 },
-  { id: "demo-3", name: "Waltuh", score: 89, note: "Add an achievement", photo: "", created: 3 },
-  { id: "demo-4", name: "yoni", score: 88, note: "Add an achievement", photo: "", created: 4 }
+  {id:"demo-1",name:"Angel",score:95,note:"Add an achievement",photo:"",created:1},
+  {id:"demo-2",name:"whostwizzy",score:91,note:"Add an achievement",photo:"",created:2},
+  {id:"demo-3",name:"Waltuh",score:89,note:"Add an achievement",photo:"",created:3},
+  {id:"demo-4",name:"yoni",score:88,note:"Add an achievement",photo:"",created:4}
 ];
 
 let members = loadMembers();
 let photoData = "";
+let pendingExtraPhotos = [];
+let activeProfileId = null;
 
 function loadMembers() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved === null
-      ? starterMembers.map(m => ({ ...m }))
-      : JSON.parse(saved);
+    const list = saved === null ? starterMembers.map(m=>({...m})) : JSON.parse(saved);
+    return list.map(m => ({
+      ...m,
+      tags:Array.isArray(m.tags) ? m.tags : [],
+      extraPhotos:Array.isArray(m.extraPhotos) ? m.extraPhotos : [],
+      influence:{...defaultInfluence,...(m.influence || {})}
+    }));
   } catch {
-    return starterMembers.map(m => ({ ...m }));
+    return starterMembers.map(m=>({
+      ...m,
+      tags:[],
+      extraPhotos:[],
+      influence:{...defaultInfluence}
+    }));
   }
 }
 
 function saveMembers() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(members));
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(members));
     return true;
   } catch {
-    alert("The browser storage is full. Try using smaller photos.");
+    alert("Browser storage is full. Try fewer or smaller photos.");
     return false;
   }
 }
 
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g,c=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[c]);
 }
 
-/* TOP 3 PODIUM */
+function safeURL(value) {
+  try {
+    const u = new URL(String(value || ""));
+    return ["https:","http:"].includes(u.protocol) ? u.href : "";
+  } catch { return ""; }
+}
+
+function avatarContent(m) {
+  return m.photo
+    ? `<img src="${esc(m.photo)}" alt="">`
+    : esc((m.name.trim()[0] || "?").toUpperCase());
+}
+
+/* Create the six editable influence fields */
+function buildInfluenceInputs() {
+  document.getElementById("influenceInputs").innerHTML = categories.map((name,i)=>`
+    <div class="form-field">
+      <label for="influence-${i}">${esc(name)} (0–30)</label>
+      <input id="influence-${i}" type="number" min="0" max="30" step="1" value="${defaultInfluence[name]}" required>
+    </div>
+  `).join("");
+}
+buildInfluenceInputs();
+
+function readInfluenceFromForm() {
+  const result = {};
+  categories.forEach((name,i)=>{
+    result[name] = Number(document.getElementById("influence-"+i).value);
+  });
+  return result;
+}
+
+function fillInfluenceForm(influence) {
+  categories.forEach((name,i)=>{
+    document.getElementById("influence-"+i).value =
+      Number(influence?.[name] ?? defaultInfluence[name]);
+  });
+}
+
+/* PODIUM */
 function renderPodium() {
-  const podium = document.getElementById("podium");
+  const top = members.slice().sort((a,b)=>
+    Number(b.score)-Number(a.score) || a.name.localeCompare(b.name)
+  ).slice(0,3);
 
-  const top = members.slice().sort((a, b) =>
-    Number(b.score) - Number(a.score) ||
-    a.name.localeCompare(b.name)
-  ).slice(0, 3);
-
-  if (!top.length) {
-    podium.innerHTML =
-      '<div class="feature-empty">Add members to fill the podium.</div>';
-    return;
-  }
-
-  podium.innerHTML = top.map((m, i) => {
-    const place = i + 1;
-    const medals = ["🥇 1ST PLACE", "🥈 2ND PLACE", "🥉 3RD PLACE"];
-
-    const avatar = m.photo
-      ? `<img src="${escapeHTML(m.photo)}" alt="">`
-      : escapeHTML((m.name.trim()[0] || "?").toUpperCase());
-
-    return `
-      <div class="podium-card place-${place}">
-        <div class="podium-place">${medals[i]}</div>
-        <div class="podium-avatar">${avatar}</div>
-        <div class="podium-name">${escapeHTML(m.name)}</div>
+  document.getElementById("podium").innerHTML = top.length
+    ? top.map((m,i)=>`
+      <div class="podium-card place-${i+1}">
+        <div class="podium-place">${["🥇 1ST PLACE","🥈 2ND PLACE","🥉 3RD PLACE"][i]}</div>
+        <div class="podium-avatar">${avatarContent(m)}</div>
+        <div class="podium-name">${esc(m.name)}</div>
         <div class="podium-score">${Number(m.score)} pts</div>
-      </div>
-    `;
-  }).join("");
+      </div>`).join("")
+    : '<div class="feature-empty">Add members to fill the podium.</div>';
 }
 
-/* BIGGEST RISERS AND DROPS */
+/* SCORE MOVEMENTS */
 function renderMovements() {
-  const changed = members.map(m => ({
-    member: m,
-    change:
-      m.previousScore === undefined ||
-      m.previousScore === null ||
-      m.previousScore === ""
-        ? 0
-        : Number(m.score) - Number(m.previousScore)
-  })).filter(x => x.change !== 0 && Number.isFinite(x.change));
+  const changed = members.map(m=>({
+    member:m,
+    change:m.previousScore == null ? 0 : Number(m.score)-Number(m.previousScore)
+  })).filter(x=>x.change!==0 && Number.isFinite(x.change));
 
-  function makeRow(m, change) {
-    const avatar = m.photo
-      ? `<img src="${escapeHTML(m.photo)}" alt="">`
-      : escapeHTML((m.name.trim()[0] || "?").toUpperCase());
-
-    return `
-      <div class="movement-item">
-        <div class="movement-avatar">${avatar}</div>
-        <div class="movement-info">
-          <div class="movement-name">${escapeHTML(m.name)}</div>
-          <div class="movement-detail">
-            ${Number(m.previousScore)} → ${Number(m.score)} points
-          </div>
-        </div>
-        <div class="movement-change ${change > 0 ? "up" : "down"}">
-          ${change > 0 ? "+" : ""}${change}
-        </div>
+  function row(m,change) {
+    return `<div class="movement-item">
+      <div class="movement-avatar">${avatarContent(m)}</div>
+      <div class="movement-info">
+        <div class="movement-name">${esc(m.name)}</div>
+        <div class="movement-detail">${Number(m.previousScore)} → ${Number(m.score)} points</div>
       </div>
-    `;
+      <div class="movement-change ${change>0?"up":"down"}">${change>0?"+":""}${change}</div>
+    </div>`;
   }
 
-  const risers = changed
-    .filter(x => x.change > 0)
-    .sort((a, b) => b.change - a.change)
-    .slice(0, 3);
+  const rises = changed.filter(x=>x.change>0).sort((a,b)=>b.change-a.change).slice(0,3);
+  const drops = changed.filter(x=>x.change<0).sort((a,b)=>a.change-b.change).slice(0,3);
 
-  const drops = changed
-    .filter(x => x.change < 0)
-    .sort((a, b) => a.change - b.change)
-    .slice(0, 3);
-
-  document.getElementById("risers").innerHTML = risers.length
-    ? risers.map(x => makeRow(x.member, x.change)).join("")
-    : '<div class="feature-empty">No risers yet. Increase a member’s score to record a rise.</div>';
+  document.getElementById("risers").innerHTML = rises.length
+    ? rises.map(x=>row(x.member,x.change)).join("")
+    : '<div class="feature-empty">No rises recorded yet.</div>';
 
   document.getElementById("drops").innerHTML = drops.length
-    ? drops.map(x => makeRow(x.member, x.change)).join("")
-    : '<div class="feature-empty">No drops yet. Decrease a member’s score to record a drop.</div>';
+    ? drops.map(x=>row(x.member,x.change)).join("")
+    : '<div class="feature-empty">No drops recorded yet.</div>';
 }
 
-/* MAIN LEADERBOARD */
+/* LEADERBOARD */
 function render() {
   renderPodium();
   renderMovements();
@@ -497,210 +460,367 @@ function render() {
 
   let visible = members.filter(m =>
     m.name.toLowerCase().includes(query) ||
-    (m.note || "").toLowerCase().includes(query)
+    (m.note||"").toLowerCase().includes(query) ||
+    (m.title||"").toLowerCase().includes(query) ||
+    (m.tags||[]).join(" ").toLowerCase().includes(query)
   );
 
-  if (sort === "score") {
-    visible.sort((a, b) =>
-      b.score - a.score || a.name.localeCompare(b.name)
-    );
-  }
-  if (sort === "low") {
-    visible.sort((a, b) =>
-      a.score - b.score || a.name.localeCompare(b.name)
-    );
-  }
-  if (sort === "name") {
-    visible.sort((a, b) => a.name.localeCompare(b.name));
-  }
-  if (sort === "new") {
-    visible.sort((a, b) => b.created - a.created);
-  }
+  if(sort==="score") visible.sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name));
+  if(sort==="low") visible.sort((a,b)=>a.score-b.score||a.name.localeCompare(b.name));
+  if(sort==="name") visible.sort((a,b)=>a.name.localeCompare(b.name));
+  if(sort==="new") visible.sort((a,b)=>b.created-a.created);
 
   document.getElementById("memberCount").textContent = members.length;
-
-  document.getElementById("topScore").textContent =
-    members.length
-      ? Math.max(...members.map(m => Number(m.score)))
-      : "—";
+  document.getElementById("topScore").textContent = members.length
+    ? Math.max(...members.map(m=>Number(m.score))) : "—";
 
   const board = document.getElementById("leaderboard");
-
-  if (!visible.length) {
-    board.innerHTML =
-      '<div class="empty">No members found. Try another search or add someone.</div>';
+  if(!visible.length) {
+    board.innerHTML = '<div class="empty">No members found. Try another search or add someone.</div>';
     return;
   }
 
-  board.innerHTML = visible.map((m, i) => {
-    const rank = sort === "score"
-      ? i + 1
-      : members.slice()
-          .sort((a, b) => b.score - a.score)
-          .findIndex(x => x.id === m.id) + 1;
+  board.innerHTML = visible.map((m,i)=>{
+    const rank = sort==="score" ? i+1 :
+      members.slice().sort((a,b)=>b.score-a.score).findIndex(x=>x.id===m.id)+1;
 
-    const avatar = m.photo
-      ? `<img src="${escapeHTML(m.photo)}" alt="">`
-      : escapeHTML((m.name.trim()[0] || "?").toUpperCase());
-
-    return `
-      <div class="member">
-        <div class="rank ${rank <= 3 ? "top" : ""}">#${rank}</div>
-        <div class="person">
-          <div class="avatar">${avatar}</div>
-          <div style="min-width:0">
-            <div class="person-name">${escapeHTML(m.name)}</div>
-            <div class="person-note">${escapeHTML(m.note || "No note added")}</div>
-          </div>
-        </div>
-        <div class="score">${Number(m.score)}</div>
-        <div class="actions">
-          <button class="icon-btn" data-edit="${escapeHTML(m.id)}"
-            aria-label="Edit ${escapeHTML(m.name)}" title="Edit">✎</button>
-          <button class="icon-btn" data-delete="${escapeHTML(m.id)}"
-            aria-label="Delete ${escapeHTML(m.name)}" title="Delete">×</button>
+    return `<div class="member">
+      <div class="rank ${rank<=3?"top":""}">#${rank}</div>
+      <div class="person" data-profile="${esc(m.id)}" title="Open profile">
+        <div class="avatar">${avatarContent(m)}</div>
+        <div style="min-width:0">
+          <div class="person-name">${esc(m.name)}</div>
+          ${m.title?`<div class="person-title">${esc(m.title)}</div>`:""}
+          <div class="person-note">${esc(m.note||"Click to view profile")}</div>
         </div>
       </div>
-    `;
+      <div class="score">${Number(m.score)}</div>
+      <div class="actions">
+        <button class="icon-btn" data-edit="${esc(m.id)}" title="Edit" aria-label="Edit member">✎</button>
+        <button class="icon-btn" data-delete="${esc(m.id)}" title="Delete" aria-label="Delete member">×</button>
+      </div>
+    </div>`;
   }).join("");
 }
 
-const dialog = document.getElementById("memberDialog");
-const form = document.getElementById("memberForm");
-const photoInput = document.getElementById("memberPhoto");
-const preview = document.getElementById("photoPreview");
-const removePhotoBtn = document.getElementById("removePhoto");
+/* SVG HEXAGON CHART */
+function renderInfluenceChart(influence) {
+  const svg = document.getElementById("influenceChart");
+  const cx=180, cy=155, radius=98, max=30;
+  const angles = categories.map((_,i)=>(-90+i*60)*Math.PI/180);
 
-function showPreview(src) {
-  photoData = src || "";
-  preview.hidden = !photoData;
-  preview.src = photoData || "";
-  removePhotoBtn.hidden = !photoData;
+  function point(r,a) {
+    return [cx+Math.cos(a)*r,cy+Math.sin(a)*r];
+  }
+  function polygon(r) {
+    return angles.map(a=>point(r,a).join(",")).join(" ");
+  }
+
+  let markup = "";
+
+  /* Six-sided grid rings */
+  [0.25,0.5,0.75,1].forEach(scale=>{
+    markup += `<polygon class="chart-grid" points="${polygon(radius*scale)}"></polygon>`;
+  });
+
+  /* Axes */
+  angles.forEach(a=>{
+    const p=point(radius,a);
+    markup += `<line class="chart-axis" x1="${cx}" y1="${cy}" x2="${p[0]}" y2="${p[1]}"></line>`;
+  });
+
+  /* Score polygon */
+  const values = categories.map(name=>{
+    const v=Number(influence?.[name] ?? 0);
+    return Math.max(0,Math.min(max,Number.isFinite(v)?v:0));
+  });
+  const scorePoints = angles.map((a,i)=>point(radius*values[i]/max,a));
+  markup += `<polygon class="chart-area" points="${scorePoints.map(p=>p.join(",")).join(" ")}"></polygon>`;
+
+  scorePoints.forEach(p=>{
+    markup += `<circle class="chart-dot" cx="${p[0]}" cy="${p[1]}" r="4"></circle>`;
+  });
+
+  /* Category labels around the hexagon */
+  angles.forEach((a,i)=>{
+    const p=point(radius+28,a);
+    let anchor="middle";
+    if(Math.cos(a)>0.25) anchor="start";
+    if(Math.cos(a)<-0.25) anchor="end";
+    let y=p[1];
+    if(i===0) y-=2;
+    markup += `<text x="${p[0]}" y="${y}" fill="#f4f5ef" font-size="10" text-anchor="${anchor}" dominant-baseline="middle">${esc(categories[i])}</text>`;
+  });
+
+  svg.innerHTML=markup;
+}
+
+function renderProfile(id) {
+  const m=members.find(x=>x.id===id);
+  if(!m) return;
+
+  document.getElementById("profileAvatar").innerHTML=avatarContent(m);
+  document.getElementById("profileName").textContent=m.name;
+  document.getElementById("profileTitle").textContent=m.title||"";
+  document.getElementById("profileScore").textContent="Score: "+Number(m.score);
+
+  document.getElementById("profileTags").innerHTML=(m.tags||[]).length
+    ? m.tags.map(tag=>`<span class="profile-tag">${esc(tag)}</span>`).join("")
+    : '<div class="feature-empty">No tags added.</div>';
+
+  const tiktok=safeURL(m.tiktok);
+  document.getElementById("profileTikTok").innerHTML=tiktok
+    ? `<a class="tiktok-link" href="${esc(tiktok)}" target="_blank" rel="noopener noreferrer">♪ Open TikTok profile ↗</a>`
+    : '<div class="feature-empty">No TikTok link added.</div>';
+
+  document.getElementById("profileOverview").textContent=m.overview||"No overview added yet.";
+
+  renderInfluenceChart(m.influence||defaultInfluence);
+
+  document.getElementById("influenceList").innerHTML=categories.map(name=>`
+    <div class="influence-row"><span>${esc(name)}</span><strong>${Number(m.influence?.[name]??0)} pts</strong></div>
+  `).join("");
+
+  const photos=Array.isArray(m.extraPhotos)?m.extraPhotos:[];
+  document.getElementById("extraGallery").innerHTML=photos.length
+    ? photos.map((src,i)=>`
+      <div class="extra-photo">
+        <a href="${esc(src)}" target="_blank" rel="noopener noreferrer" title="Open picture ${i+1}">
+          <img src="${esc(src)}" alt="${esc(m.name)} extra picture ${i+1}" loading="lazy">
+        </a>
+      </div>`).join("")
+    : '<div class="extra-empty">No extra pictures yet. Use Edit Profile to add some.</div>';
+}
+
+const profileDialog=document.getElementById("profileDialog");
+const memberDialog=document.getElementById("memberDialog");
+const form=document.getElementById("memberForm");
+const photoInput=document.getElementById("memberPhoto");
+const extraPhotosInput=document.getElementById("extraPhotosInput");
+const preview=document.getElementById("photoPreview");
+let clearExtraPhotos=false;
+
+function openProfile(id) {
+  if(!members.some(m=>m.id===id)) return;
+  activeProfileId=id;
+  renderProfile(id);
+  profileDialog.showModal();
 }
 
 function openAdd() {
   form.reset();
-  document.getElementById("memberId").value = "";
-  document.getElementById("dialogTitle").textContent = "Add member";
-  document.getElementById("memberScore").value = 50;
-  showPreview("");
-  dialog.showModal();
+  document.getElementById("memberId").value="";
+  document.getElementById("dialogTitle").textContent="Add member";
+  document.getElementById("memberScore").value=50;
+  fillInfluenceForm(defaultInfluence);
+  photoData="";
+  pendingExtraPhotos=[];
+  clearExtraPhotos=false;
+  preview.src="";
+  preview.style.display="none";
+  document.getElementById("removePhoto").hidden=true;
+  document.getElementById("extraPhotoCount").textContent="No extra pictures selected.";
+  memberDialog.showModal();
 }
 
 function openEdit(id) {
-  const m = members.find(x => x.id === id);
-  if (!m) return;
+  const m=members.find(x=>x.id===id);
+  if(!m) return;
 
   form.reset();
-  document.getElementById("memberId").value = m.id;
-  document.getElementById("dialogTitle").textContent = "Edit member";
-  document.getElementById("memberName").value = m.name;
-  document.getElementById("memberScore").value = m.score;
-  document.getElementById("memberNote").value = m.note || "";
+  document.getElementById("memberId").value=m.id;
+  document.getElementById("dialogTitle").textContent="Edit "+m.name;
+  document.getElementById("memberName").value=m.name;
+  document.getElementById("memberScore").value=m.score;
+  document.getElementById("memberTitle").value=m.title||"";
+  document.getElementById("memberTikTok").value=m.tiktok||"";
+  document.getElementById("memberTags").value=(m.tags||[]).join(", ");
+  document.getElementById("memberOverview").value=m.overview||"";
+  document.getElementById("memberNote").value=m.note||"";
+  fillInfluenceForm(m.influence||defaultInfluence);
 
-  showPreview(m.photo || "");
-  dialog.showModal();
+  photoData=m.photo||"";
+  preview.src=photoData;
+  preview.style.display=photoData?"block":"none";
+  document.getElementById("removePhoto").hidden=!photoData;
+
+  pendingExtraPhotos=[...(m.extraPhotos||[])];
+  clearExtraPhotos=false;
+  updateExtraPhotoCount();
+
+  memberDialog.showModal();
 }
 
-document.getElementById("addBtn").addEventListener("click", openAdd);
+function updateExtraPhotoCount() {
+  document.getElementById("extraPhotoCount").textContent =
+    pendingExtraPhotos.length+" extra picture(s) will be saved.";
+}
 
-document.getElementById("cancelBtn").addEventListener("click", () => {
-  dialog.close();
+document.getElementById("addBtn").addEventListener("click",openAdd);
+document.getElementById("cancelBtn").addEventListener("click",()=>memberDialog.close());
+document.getElementById("closeProfileBtn").addEventListener("click",()=>profileDialog.close());
+
+document.getElementById("editProfileBtn").addEventListener("click",()=>{
+  const id=activeProfileId;
+  profileDialog.close();
+  if(id) openEdit(id);
 });
 
-document.getElementById("search").addEventListener("input", render);
-document.getElementById("sort").addEventListener("change", render);
+document.getElementById("search").addEventListener("input",render);
+document.getElementById("sort").addEventListener("change",render);
 
-document.getElementById("leaderboard").addEventListener("click", event => {
-  const editButton = event.target.closest("[data-edit]");
-  const deleteButton = event.target.closest("[data-delete]");
+document.getElementById("leaderboard").addEventListener("click",event=>{
+  const edit=event.target.closest("[data-edit]");
+  const del=event.target.closest("[data-delete]");
+  const prof=event.target.closest("[data-profile]");
 
-  if (editButton) {
-    openEdit(editButton.dataset.edit);
-  }
+  if(edit){openEdit(edit.dataset.edit);return;}
 
-  if (deleteButton) {
-    const m = members.find(x => x.id === deleteButton.dataset.delete);
-
-    if (m && confirm(`Delete ${m.name} from the leaderboard?`)) {
-      members = members.filter(x => x.id !== m.id);
-
-      if (saveMembers()) render();
+  if(del){
+    const m=members.find(x=>x.id===del.dataset.delete);
+    if(m&&confirm("Delete "+m.name+" from the leaderboard?")){
+      members=members.filter(x=>x.id!==m.id);
+      if(saveMembers())render();
     }
+    return;
   }
+
+  if(prof)openProfile(prof.dataset.profile);
 });
 
-photoInput.addEventListener("change", () => {
-  const file = photoInput.files && photoInput.files[0];
-  if (!file) return;
-
-  if (!file.type.startsWith("image/")) {
+/* Main photo upload */
+photoInput.addEventListener("change",()=>{
+  const file=photoInput.files?.[0];
+  if(!file)return;
+  if(!file.type.startsWith("image/")){
     alert("Please choose an image file.");
-    photoInput.value = "";
+    photoInput.value="";
     return;
   }
-
-  if (file.size > 1.5 * 1024 * 1024) {
-    alert("Please choose a photo smaller than 1.5 MB.");
-    photoInput.value = "";
+  if(file.size>1024*1024){
+    alert("Please choose a main photo smaller than 1 MB.");
+    photoInput.value="";
     return;
   }
-
-  const reader = new FileReader();
-
-  reader.onload = () => showPreview(reader.result);
+  const reader=new FileReader();
+  reader.onload=()=>{
+    photoData=reader.result;
+    preview.src=photoData;
+    preview.style.display="block";
+    document.getElementById("removePhoto").hidden=false;
+  };
   reader.readAsDataURL(file);
 });
 
-removePhotoBtn.addEventListener("click", () => {
-  showPreview("");
-  photoInput.value = "";
+document.getElementById("removePhoto").addEventListener("click",()=>{
+  photoData="";
+  photoInput.value="";
+  preview.src="";
+  preview.style.display="none";
+  document.getElementById("removePhoto").hidden=true;
 });
 
-form.addEventListener("submit", event => {
+/* Extra photos: add several at once */
+extraPhotosInput.addEventListener("change",async()=>{
+  const files=Array.from(extraPhotosInput.files||[]);
+  if(!files.length)return;
+
+  const valid=[];
+  for(const file of files){
+    if(!file.type.startsWith("image/")){
+      alert(file.name+" is not an image and was skipped.");
+      continue;
+    }
+    if(file.size>1024*1024){
+      alert(file.name+" is over 1 MB and was skipped.");
+      continue;
+    }
+    valid.push(file);
+  }
+
+  try {
+    const loaded=await Promise.all(valid.map(file=>new Promise((resolve,reject)=>{
+      const reader=new FileReader();
+      reader.onload=()=>resolve(reader.result);
+      reader.onerror=reject;
+      reader.readAsDataURL(file);
+    })));
+
+    pendingExtraPhotos.push(...loaded);
+    updateExtraPhotoCount();
+  } catch {
+    alert("One of the pictures could not be read.");
+  }
+
+  extraPhotosInput.value="";
+});
+
+document.getElementById("clearExtraPhotos").addEventListener("click",()=>{
+  if(!pendingExtraPhotos.length){
+    clearExtraPhotos=true;
+    updateExtraPhotoCount();
+    return;
+  }
+  if(confirm("Remove all extra pictures from this member?")){
+    pendingExtraPhotos=[];
+    clearExtraPhotos=true;
+    updateExtraPhotoCount();
+  }
+});
+
+/* Save member and all profile data */
+form.addEventListener("submit",event=>{
   event.preventDefault();
 
-  const name = document.getElementById("memberName").value.trim();
-  const score = Number(document.getElementById("memberScore").value);
-  const note = document.getElementById("memberNote").value.trim();
-  const id = document.getElementById("memberId").value;
+  const name=document.getElementById("memberName").value.trim();
+  const score=Number(document.getElementById("memberScore").value);
+  const title=document.getElementById("memberTitle").value.trim();
+  const rawTikTok=document.getElementById("memberTikTok").value.trim();
+  const overview=document.getElementById("memberOverview").value.trim();
+  const note=document.getElementById("memberNote").value.trim();
+  const tags=document.getElementById("memberTags").value.split(",")
+    .map(x=>x.trim()).filter(Boolean).slice(0,20);
+  const id=document.getElementById("memberId").value;
+  const influence=readInfluenceFromForm();
 
-  if (!name || !Number.isFinite(score) || score < 0 || score > 100) {
+  if(!name||!Number.isFinite(score)||score<0||score>100){
     alert("Enter a name and a score from 0 to 100.");
     return;
   }
 
-  const existing = members.find(m => m.id === id);
+  if(rawTikTok&&!safeURL(rawTikTok)){
+    alert("Enter a valid TikTok URL starting with https:// or http://.");
+    return;
+  }
 
-  const member = {
-    id: existing
-      ? existing.id
-      : (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
-    name,
-    score,
-    note,
-    photo: photoData,
-    created: existing ? existing.created : Date.now(),
+  for(const category of categories){
+    if(!Number.isFinite(influence[category])||influence[category]<0||influence[category]>30){
+      alert("Each Influence Breakdown score must be between 0 and 30.");
+      return;
+    }
+  }
 
-    // Remember the previous score when the score changes.
-    previousScore: existing
-      ? (
-          Number(score) !== Number(existing.score)
-            ? Number(existing.score)
-            : existing.previousScore
-        )
+  const existing=members.find(m=>m.id===id);
+
+  const member={
+    id:existing?existing.id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),
+    name,score,title,tiktok:rawTikTok?safeURL(rawTikTok):"",
+    tags,overview,note,photo:photoData,
+    extraPhotos:[...pendingExtraPhotos],
+    influence,
+    created:existing?existing.created:Date.now(),
+    previousScore:existing
+      ? (Number(score)!==Number(existing.score)?Number(existing.score):existing.previousScore)
       : undefined
   };
 
-  if (existing) {
-    members = members.map(m => m.id === id ? member : m);
-  } else {
-    members.push(member);
-  }
+  if(existing)members=members.map(m=>m.id===id?member:m);
+  else members.push(member);
 
-  if (saveMembers()) {
-    dialog.close();
+  if(saveMembers()){
+    memberDialog.close();
     render();
+    if(activeProfileId===member.id&&profileDialog.open)renderProfile(member.id);
   }
 });
 
