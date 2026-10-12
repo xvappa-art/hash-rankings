@@ -826,5 +826,316 @@ form.addEventListener("submit",event=>{
 
 render();
 </script>
+  
+<style>
+/* HASH RANKINGS — VOTING + NEWS */
+#hr-extra { margin: 28px 0; }
+#hr-extra .hr-panel {
+  background: #191b18;
+  border: 1px solid #30332c;
+  border-radius: 14px;
+  padding: 17px;
+  margin-bottom: 15px;
+}
+#hr-extra h2 { font-size: 20px; margin: 0 0 8px; }
+#hr-extra .hr-muted { color: #92968c; font-size: 12px; }
+#hr-extra .hr-lime { color: #c5ff45; }
+#hr-extra button {
+  cursor: pointer; border: 1px solid #414638;
+  background: #20231e; color: #f4f5ef;
+  border-radius: 8px; padding: 9px 12px; font-weight: 800;
+}
+#hr-extra button:hover { border-color: #c5ff45; }
+#hr-extra button:disabled { opacity: .45; cursor: not-allowed; }
+#hr-extra .hr-primary { background: #c5ff45; color: #14160f; }
+#hr-extra input, #hr-extra textarea {
+  display: block; width: 100%; box-sizing: border-box;
+  background: #20231e; color: white; border: 1px solid #30332c;
+  border-radius: 8px; padding: 11px; margin: 8px 0;
+  font: inherit;
+}
+#hr-extra textarea { min-height: 80px; resize: vertical; }
+#hr-extra .hr-story {
+  border-top: 1px solid #30332c; padding: 14px 0;
+}
+#hr-extra .hr-story:first-child { border-top: 0; }
+#hr-extra .hr-headline { font-weight: 950; font-size: 15px; line-height: 1.5; }
+#hr-extra .hr-meta { color: #c5ff45; font-size: 10px; font-weight: 900; margin-bottom: 6px; }
+#hr-extra .hr-body { font-size: 13px; line-height: 1.7; margin-top: 6px; }
+#hr-extra .hr-vote-count { color: #c5ff45; font-size: 11px; margin-top: 5px; }
+#hr-extra .hr-error { color: #ff6868; font-size: 12px; }
+#hr-extra .hr-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+@media(max-width:520px) {
+  #hr-extra .hr-panel { padding: 12px; }
+}
+</style>
+
+<section id="hr-extra">
+  <div class="hr-panel">
+    <h2>🗳️ Community Voting</h2>
+    <p class="hr-muted">
+      Vote for your favorites. Each person can receive one vote
+      from this browser. A vote adds one point to their score.
+    </p>
+    <div id="hr-vote-list"></div>
+    <p class="hr-muted">
+      Votes on this version are saved locally on this device,
+      not shared with other visitors.
+    </p>
+  </div>
+
+  <div class="hr-panel">
+    <h2>📰 HASH NEWS</h2>
+    <p class="hr-muted">Rank changes, major moments, and community lore.</p>
+    <div id="hr-news-feed"></div>
+  </div>
+
+  <div class="hr-panel">
+    <h2>✍️ Publish a news story</h2>
+    <p class="hr-muted">
+      Create fun, fan-made headlines and stories for the leaderboard.
+    </p>
+    <input id="hr-news-title" maxlength="120"
+      placeholder="Headline — ANGEL ASCENDS TO #1!">
+    <textarea id="hr-news-body" maxlength="1200"
+      placeholder="Write what happened..."></textarea>
+    <div class="hr-row">
+      <button class="hr-primary" id="hr-publish">Publish story</button>
+      <span id="hr-news-error" class="hr-error"></span>
+    </div>
+    <p class="hr-muted">
+      Stories are saved in this browser. Anyone with access to this
+      browser can publish them; this is not an authenticated admin system.
+    </p>
+  </div>
+</section>
+
+<script>
+(function () {
+  "use strict";
+
+  const VOTES_KEY = "hash-rankings-votes-v1";
+  const NEWS_KEY = "hash-rankings-news-v1";
+  const $ = id => document.getElementById(id);
+
+  function readJSON(key, fallback) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key));
+      return value ?? fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  let votes = readJSON(VOTES_KEY, {});
+  let news = readJSON(NEWS_KEY, []);
+
+  if (!votes || typeof votes !== "object" || Array.isArray(votes)) votes = {};
+  if (!Array.isArray(news)) news = [];
+
+  function saveVotes() {
+    try {
+      localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
+      return true;
+    } catch {
+      alert("Could not save votes in this browser.");
+      return false;
+    }
+  }
+
+  function saveNews() {
+    try {
+      localStorage.setItem(NEWS_KEY, JSON.stringify(news.slice(0, 60)));
+      return true;
+    } catch {
+      alert("Could not save the news. Browser storage may be full.");
+      return false;
+    }
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;",
+      '"': "&quot;", "'": "&#39;"
+    })[c]);
+  }
+
+  function rankedMembers() {
+    return members.slice().sort(
+      (a, b) => Number(b.score) - Number(a.score) ||
+        a.name.localeCompare(b.name)
+    );
+  }
+
+  function rankMap() {
+    return new Map(rankedMembers().map((m, i) => [m.id, i + 1]));
+  }
+
+  function addNews(headline, body, type = "COMMUNITY NEWS") {
+    news.unshift({
+      id: Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+      headline: String(headline).slice(0, 120),
+      body: String(body).slice(0, 1200),
+      type,
+      time: new Date().toLocaleString()
+    });
+
+    news = news.slice(0, 60);
+    saveNews();
+    renderNews();
+  }
+
+  function renderNews() {
+    const feed = $("hr-news-feed");
+
+    if (!news.length) {
+      feed.innerHTML =
+        '<p class="hr-muted">No news yet. Make history with the first story.</p>';
+      return;
+    }
+
+    feed.innerHTML = news.map(item => `
+      <article class="hr-story">
+        <div class="hr-meta">${escapeHTML(item.type)} · ${escapeHTML(item.time)}</div>
+        <div class="hr-headline">${escapeHTML(item.headline)}</div>
+        <div class="hr-body">${escapeHTML(item.body)}</div>
+      </article>
+    `).join("");
+  }
+
+  function renderVotes() {
+    const list = $("hr-vote-list");
+    const sorted = rankedMembers();
+
+    if (!sorted.length) {
+      list.innerHTML = '<p class="hr-muted">Add a member before voting.</p>';
+      return;
+    }
+
+    list.innerHTML = sorted.map((m, i) => {
+      const hasVoted = Boolean(votes[m.id]);
+      return `
+        <div class="hr-story">
+          <div class="hr-row">
+            <div style="flex:1;min-width:120px">
+              <strong>#${i + 1} ${escapeHTML(m.name)}</strong>
+              <div class="hr-vote-count">
+                Score: ${Number(m.score)} · Local votes: ${Number(m.votes || 0)}
+              </div>
+            </div>
+            <button data-hr-vote="${escapeHTML(m.id)}"
+              ${hasVoted ? "disabled" : ""}>
+              ${hasVoted ? "✓ Voted" : "▲ Vote"}
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function refreshExtras() {
+    renderVotes();
+    renderNews();
+  }
+
+  $("hr-vote-list").addEventListener("click", event => {
+    const button = event.target.closest("[data-hr-vote]");
+    if (!button) return;
+
+    const id = button.dataset.hrVote;
+    const person = members.find(m => String(m.id) === id);
+    if (!person || votes[id]) return;
+
+    const before = rankMap();
+
+    // One vote per member, per browser.
+    // Scores are capped at 100 to match the existing editor.
+    votes[id] = true;
+    person.votes = Number(person.votes || 0) + 1;
+    person.previousScore = Number(person.score);
+    person.score = Math.min(100, Number(person.score) + 1);
+
+    if (!saveVotes() || !saveMembers()) {
+      delete votes[id];
+      person.votes = Math.max(0, Number(person.votes || 1) - 1);
+      person.score = Number(person.previousScore);
+      saveVotes();
+      return;
+    }
+
+    const after = rankMap();
+    const newRank = after.get(id);
+    const oldRank = before.get(id);
+
+    if (newRank < oldRank) {
+      const headline = newRank === 1
+        ? `${person.name.toUpperCase()} ASCENDS TO TOP 1!`
+        : `${person.name.toUpperCase()} CLIMBS TO #${newRank}!`;
+
+      addNews(
+        headline,
+        `${person.name} received a community vote and moved from #${oldRank} to #${newRank}. The leaderboard has shifted.`,
+        "RANKING UPDATE"
+      );
+    } else {
+      addNews(
+        `${person.name.toUpperCase()} GETS ANOTHER VOTE!`,
+        `${person.name} gained one point from a community vote. Current score: ${person.score}.`,
+        "COMMUNITY VOTE"
+      );
+    }
+
+    render();
+    refreshExtras();
+  });
+
+  $("hr-publish").addEventListener("click", () => {
+    const headline = $("hr-news-title").value.trim();
+    const body = $("hr-news-body").value.trim();
+    const error = $("hr-news-error");
+
+    error.textContent = "";
+
+    if (!headline || !body) {
+      error.textContent = "Enter both a headline and a story.";
+      return;
+    }
+
+    addNews(headline, body, "FAN-MADE NEWS");
+    $("hr-news-title").value = "";
+    $("hr-news-body").value = "";
+  });
+
+  // Add a voting button to each existing leaderboard row.
+  // The site's original editing/profile buttons remain intact.
+  const originalRender = render;
+
+  render = function () {
+    originalRender();
+    refreshExtras();
+  };
+
+  // Keep the voting list synchronized when someone edits or adds members.
+  const board = $("leaderboard");
+  if (board) {
+    new MutationObserver(() => renderVotes()).observe(board, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Sample fan-made story to show the intended dramatic news style.
+  if (!localStorage.getItem("hash-rankings-sample-news-added")) {
+    addNews(
+      "VAMPFINALBOSS MEETS UP WITH DILLON LATHAM TO MOG!",
+      "SAMPLE FAN-MADE STORY: Vampfinalboss and Dillon Latham link up at the beach to film a SIMPLETICS advertisement. Not much more can be said. Just pure MOG. They BOTH ASCEND in the rankings!",
+      "SAMPLE STORY"
+    );
+    localStorage.setItem("hash-rankings-sample-news-added", "yes");
+  }
+
+  refreshExtras();
+})();
+</script>
 </body>
 </html>
