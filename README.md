@@ -1,0 +1,2 @@
+# hash-rankings
+Just rankings
