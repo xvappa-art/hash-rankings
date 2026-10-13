@@ -840,6 +840,11 @@ async function loadCloudData(){
   else if(isAdmin){await syncMembersToCloud()}
   if(newsRows&&newsRows.length){news=newsRows.map(row=>row.data);try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}catch{}}
   else if(isAdmin){await syncNewsToCloud()}
+  /* Use Supabase vote records for this browser, not any old device-only votes. */
+  votes={};
+  const voterId=readJSON("hash-rankings-voter-id",null);
+  if(voterId){const {data:myVotes,error:voteError}=await supabaseClient.from("hash_votes").select("member_id").eq("voter_id",voterId);if(!voteError&&myVotes)myVotes.forEach(v=>votes[String(v.member_id)]=true)}
+  saveVotes();
   cloudReady=true;render();renderNews();
  }catch(error){
   console.error("Cloud load failed:",error);
