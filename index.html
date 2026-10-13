@@ -146,6 +146,7 @@ dialog h2{margin:0 0 18px}
 <header>
   <div class="logo">HASH <span>RANKINGS</span></div>
   <div class="status">COMMUNITY LEADERBOARD</div>
+  <button class="btn" id="adminAccessBtn" type="button">Admin login</button>
 </header>
 
 <main>
@@ -298,7 +299,14 @@ dialog h2{margin:0 0 18px}
 </form>
 </dialog>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+const SUPABASE_URL="https://wdrszqqohigeimyshess.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY="sb_publishable_rTzZ47dtU-oXMMlpMPfOpw_qAGda20Y";
+const ADMIN_EMAIL="melikhova999@gmail.com";
+let supabaseClient=null;
+let isAdmin=false;
+let cloudReady=false;
 const STORAGE_KEY="hash-rankings-v1";
 const NEWS_KEY="hash-rankings-news-v1";
 const VOTES_KEY="hash-rankings-votes-v1";
@@ -352,12 +360,16 @@ let votes=readJSON(VOTES_KEY,{});
 if(!votes||typeof votes!=="object"||Array.isArray(votes))votes={};
 
 function saveMembers(){
- try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members));return true}
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}
  catch{alert("Browser storage is full. Try fewer or smaller photos.");return false}
+ if(isAdmin&&supabaseClient)syncMembersToCloud();
+ return true;
 }
 function saveNews(){
- try{localStorage.setItem(NEWS_KEY,JSON.stringify(news));return true}
+ try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}
  catch{alert("Browser storage is full. Try removing some pictures.");return false}
+ if(isAdmin&&supabaseClient)syncNewsToCloud();
+ return true;
 }
 function saveVotes(){
  try{localStorage.setItem(VOTES_KEY,JSON.stringify(votes));return true}
@@ -463,8 +475,7 @@ function render(){
    <div class="score">${Number(m.score)}</div>
    <div class="actions">
     <button class="icon-btn vote-btn" data-vote="${esc(m.id)}" title="Vote for this member" aria-label="Vote for ${esc(m.name)}" ${votes[m.id]?"disabled":""}>${votes[m.id]?"✓":"▲"}</button>
-    <button class="icon-btn" data-edit="${esc(m.id)}" title="Edit" aria-label="Edit member">✎</button>
-    <button class="icon-btn" data-delete="${esc(m.id)}" title="Delete" aria-label="Delete member">×</button>
+    ${isAdmin?`<button class="icon-btn" data-edit="${esc(m.id)}" title="Edit" aria-label="Edit member">✎</button><button class="icon-btn" data-delete="${esc(m.id)}" title="Delete" aria-label="Delete member">×</button>`:""}
    </div>
   </div>`).join("");
 }
@@ -560,10 +571,11 @@ function showPage(page){
  if(isNews)renderNews();
 }
 
-document.getElementById("addBtn").addEventListener("click",openAdd);
+document.getElementById("addBtn").addEventListener("click",()=>{if(isAdmin)openAdd();else alert("Sign in with the admin account to manage profiles.")});
 document.getElementById("cancelBtn").addEventListener("click",()=>memberDialog.close());
 document.getElementById("closeProfileBtn").addEventListener("click",()=>profileDialog.close());
 document.getElementById("editProfileBtn").addEventListener("click",()=>{
+ if(!isAdmin){alert("Sign in with the admin account to edit profiles.");return}
  const id=activeProfileId;profileDialog.close();if(id)openEdit(id);
 });
 document.getElementById("search").addEventListener("input",render);
@@ -587,27 +599,19 @@ document.getElementById("leaderboard").addEventListener("click",event=>{
  if(prof)openProfile(prof.dataset.profile);
 });
 
-function castVote(id){
+async function castVote(id){
  const m=getMember(id);if(!m||votes[id])return;
  if(Number(m.score)>=100){alert("This member already has the maximum score of 100.");return}
- const oldRank=sortedMembers().findIndex(x=>x.id===id)+1;
- m.previousScore=Number(m.score);
- m.score=Math.min(100,Number(m.score)+1);
- votes[id]=true;
- if(!saveMembers())return;
- saveVotes();
- const newRank=sortedMembers().findIndex(x=>x.id===id)+1;
- if(newRank<oldRank){
-  addNewsStory({
-   title:m.name.toUpperCase()+" CLIMBS THE RANKINGS",
-   category:"Rankings",
-   body:m.name+" received a vote and moved from #"+oldRank+" to #"+newRank+". Their score is now "+m.score+".",
-   memberId:m.id,
-   photo:"",
-   created:Date.now()
-  });
- }
- render();
+ if(!supabaseClient||!cloudReady){alert("The shared leaderboard is still connecting. Try again in a moment.");return}
+ const voterId=readJSON("hash-rankings-voter-id",null)||((crypto.randomUUID&&crypto.randomUUID())||("voter-"+Date.now()+"-"+Math.random().toString(36).slice(2)));
+ localStorage.setItem("hash-rankings-voter-id",voterId);
+ const {data,error}=await supabaseClient.rpc("cast_hash_vote",{p_member_id:String(id),p_voter_id:String(voterId)});
+ if(error){console.error(error);alert("Your vote could not be saved. Please try again.");return}
+ if(!data){votes[id]=true;saveVotes();render();alert("You have already voted for this member, or they have reached 100 points.");return}
+ votes[id]=true;saveVotes();
+ const {data:rows,error:loadError}=await supabaseClient.from("hash_members").select("id,data");
+ if(!loadError&&rows){members=rows.map(row=>row.data);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}catch{}}
+ cloudReady=true;render();renderNews();
 }
 
 photoInput.addEventListener("change",()=>{
@@ -645,6 +649,7 @@ document.getElementById("clearExtraPhotos").addEventListener("click",()=>{
 
 form.addEventListener("submit",event=>{
  event.preventDefault();
+ if(!isAdmin){alert("Only the admin can manage profiles.");return}
  const name=document.getElementById("memberName").value.trim();
  const score=Number(document.getElementById("memberScore").value);
  const title=document.getElementById("memberTitle").value.trim();
@@ -716,8 +721,7 @@ function renderNews(){
     <div class="news-footer">
      <span class="muted">${getMember(story.memberId)? "Featuring "+esc(getMember(story.memberId).name):"HASH RANKINGS"}</span>
      <div class="news-actions">
-      <button class="btn" data-news-edit="${esc(story.id)}">Edit</button>
-      <button class="btn danger" data-news-delete="${esc(story.id)}">Delete</button>
+      ${isAdmin?`<button class="btn" data-news-edit="${esc(story.id)}">Edit</button><button class="btn danger" data-news-delete="${esc(story.id)}">Delete</button>`:""}
      </div>
     </div>
    </div>
@@ -744,8 +748,8 @@ function openNewsEditor(id=""){
  refreshNewsMemberOptions(story?.memberId||"");
  newsDialog.showModal();
 }
-document.getElementById("addNewsBtn").addEventListener("click",()=>openNewsEditor());
-document.getElementById("publishNewsPageBtn").addEventListener("click",()=>openNewsEditor());
+document.getElementById("addNewsBtn").addEventListener("click",()=>{if(isAdmin)openNewsEditor();else alert("Sign in with the admin account to publish news.")});
+document.getElementById("publishNewsPageBtn").addEventListener("click",()=>{if(isAdmin)openNewsEditor();else alert("Sign in with the admin account to publish news.")});
 document.getElementById("cancelNewsBtn").addEventListener("click",()=>newsDialog.close());
 document.getElementById("newsList").addEventListener("click",event=>{
  const edit=event.target.closest("[data-news-edit]");
@@ -770,6 +774,7 @@ document.getElementById("newsMember").addEventListener("change",()=>{
 });
 document.getElementById("newsForm").addEventListener("submit",event=>{
  event.preventDefault();
+ if(!isAdmin){alert("Only the admin can publish news.");return}
  const title=document.getElementById("newsTitle").value.trim();
  const body=document.getElementById("newsBody").value.trim();
  if(!title||!body){alert("Enter a headline and story.");return}
@@ -789,6 +794,96 @@ if(localStorage.getItem(NEWS_KEY)===null)saveNews();
 
 render();
 renderNews();
+
+function applyAdminUI(){
+ const ids=["addBtn","addNewsBtn","publishNewsPageBtn","editProfileBtn"];
+ ids.forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=!isAdmin});
+ const access=document.getElementById("adminAccessBtn");
+ if(access)access.textContent=isAdmin?"Admin: "+ADMIN_EMAIL+" · Sign out":"Admin login";
+ render();renderNews();
+}
+async function syncMembersToCloud(){
+ if(!supabaseClient||!isAdmin)return;
+ try{
+  const payload=members.map(m=>({id:String(m.id),data:m}));
+  if(payload.length){const {error}=await supabaseClient.from("hash_members").upsert(payload,{onConflict:"id"});if(error)throw error}
+  const {data:existing,error:readError}=await supabaseClient.from("hash_members").select("id");
+  if(readError)throw readError;
+  const keep=new Set(members.map(m=>String(m.id)));
+  const stale=(existing||[]).filter(row=>!keep.has(String(row.id))).map(row=>row.id);
+  if(stale.length){const {error}=await supabaseClient.from("hash_members").delete().in("id",stale);if(error)throw error}
+  cloudReady=true;
+ }catch(error){console.error("Could not sync profiles:",error);alert("Profiles could not sync to the shared site. Check that the SQL setup ran successfully.");}
+}
+async function syncNewsToCloud(){
+ if(!supabaseClient||!isAdmin)return;
+ try{
+  const payload=news.map(n=>({id:String(n.id),data:n}));
+  if(payload.length){const {error}=await supabaseClient.from("hash_news").upsert(payload,{onConflict:"id"});if(error)throw error}
+  const {data:existing,error:readError}=await supabaseClient.from("hash_news").select("id");
+  if(readError)throw readError;
+  const keep=new Set(news.map(n=>String(n.id)));
+  const stale=(existing||[]).filter(row=>!keep.has(String(row.id))).map(row=>row.id);
+  if(stale.length){const {error}=await supabaseClient.from("hash_news").delete().in("id",stale);if(error)throw error}
+  cloudReady=true;
+ }catch(error){console.error("Could not sync news:",error);alert("News could not sync to the shared site. Check that the SQL setup ran successfully.");}
+}
+async function loadCloudData(){
+ if(!supabaseClient)return;
+ try{
+  const [{data:memberRows,error:memberError},{data:newsRows,error:newsError}]=await Promise.all([
+   supabaseClient.from("hash_members").select("id,data"),
+   supabaseClient.from("hash_news").select("id,data")
+  ]);
+  if(memberError)throw memberError;if(newsError)throw newsError;
+  if(memberRows&&memberRows.length){members=memberRows.map(row=>row.data);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}catch{}}
+  else if(isAdmin){await syncMembersToCloud()}
+  if(newsRows&&newsRows.length){news=newsRows.map(row=>row.data);try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}catch{}}
+  else if(isAdmin){await syncNewsToCloud()}
+  cloudReady=true;render();renderNews();
+ }catch(error){
+  console.error("Cloud load failed:",error);
+  cloudReady=false;
+  const status=document.querySelector("header .status");
+  if(status)status.textContent="CONNECTION ERROR — TRY REFRESHING";
+ }
+}
+document.getElementById("adminAccessBtn").addEventListener("click",async()=>{
+ if(isAdmin){
+  await supabaseClient.auth.signOut();return;
+ }
+ const email=prompt("Enter the admin email to receive a secure sign-in link:");
+ if(!email)return;
+ if(email.trim().toLowerCase()!==ADMIN_EMAIL){alert("That email is not the configured admin account.");return}
+ const {error}=await supabaseClient.auth.signInWithOtp({email:ADMIN_EMAIL,options:{emailRedirectTo:window.location.href}});
+ if(error){console.error(error);alert("Could not send the sign-in link: "+error.message);return}
+ alert("A secure sign-in link was sent to "+ADMIN_EMAIL+". Open it on this device, then return to the site.");
+});
+async function initCloud(){
+ try{
+  if(!window.supabase?.createClient)throw new Error("Supabase client library did not load.");
+  supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  isAdmin=!!session&&String(session.user?.email||"").toLowerCase()===ADMIN_EMAIL;
+  applyAdminUI();
+  await loadCloudData();
+  supabaseClient.auth.onAuthStateChange(async(_event,sessionNow)=>{
+   isAdmin=!!sessionNow&&String(sessionNow.user?.email||"").toLowerCase()===ADMIN_EMAIL;
+   applyAdminUI();
+   await loadCloudData();
+   if(isAdmin){
+    if(!members.length)await syncMembersToCloud();
+    if(!news.length)await syncNewsToCloud();
+   }
+  });
+ }catch(error){
+  console.error("Supabase initialization failed:",error);
+  const status=document.querySelector("header .status");
+  if(status)status.textContent="CLOUD CONNECTION FAILED";
+ }
+}
+applyAdminUI();
+initCloud();
 </script>
 </body>
 </html>
