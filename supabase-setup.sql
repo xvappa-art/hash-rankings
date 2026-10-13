@@ -16,6 +16,11 @@ alter table public.hash_members enable row level security;
 alter table public.hash_news enable row level security;
 alter table public.hash_votes enable row level security;
 
+-- API grants: row-level security policies above still control who may write.
+grant select on public.hash_members, public.hash_news to anon, authenticated;
+grant insert, update, delete on public.hash_members, public.hash_news to authenticated;
+grant select on public.hash_votes to anon, authenticated;
+
 drop policy if exists "Public read members" on public.hash_members;
 create policy "Public read members" on public.hash_members for select to anon, authenticated using (true);
 drop policy if exists "Admin insert members" on public.hash_members;
