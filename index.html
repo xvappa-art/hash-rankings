@@ -860,7 +860,7 @@ document.getElementById("adminAccessBtn").addEventListener("click",async()=>{
  const email=prompt("Enter the admin email to receive a secure sign-in link:");
  if(!email)return;
  if(email.trim().toLowerCase()!==ADMIN_EMAIL){alert("That email is not the configured admin account.");return}
- const {error}=await supabaseClient.auth.signInWithOtp({email:ADMIN_EMAIL,options:{emailRedirectTo:window.location.href}});
+ const {error}=await supabaseClient.auth.signInWithOtp({email:ADMIN_EMAIL,options:{emailRedirectTo:"https://hash-rankings.vercel.app/"}});
  if(error){console.error(error);alert("Could not send the sign-in link: "+error.message);return}
  alert("A secure sign-in link was sent to "+ADMIN_EMAIL+". Open it on this device, then return to the site.");
 });
