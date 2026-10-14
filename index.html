@@ -151,6 +151,22 @@ dialog h2{margin:0 0 18px}
   .influence-list{grid-template-columns:1fr}
   .extra-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* Community vote */
+.community-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;margin:18px 0}
+.community-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.community-targets{display:grid;gap:8px;margin:14px 0}
+.community-target{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(145px,190px);align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px}
+.community-target input[type=checkbox]{width:auto;accent-color:var(--lime)}
+.community-target-name{font-weight:800;overflow-wrap:anywhere}
+.community-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.community-result{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.community-result-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.community-result-row:last-child{border-bottom:0}
+.community-result-rank{color:var(--lime);font-weight:900;width:24px}
+.community-result-count{margin-left:auto;font-weight:900;white-space:nowrap}
+.community-chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:4px 8px;color:var(--muted);font-size:11px;margin:4px 4px 0 0}
+@media(max-width:600px){.community-grid,.community-results{grid-template-columns:1fr}.community-target{grid-template-columns:auto minmax(0,1fr)}.community-target select{grid-column:2;max-width:100%}}
 </style>
 </head>
 <body>
@@ -165,6 +181,7 @@ dialog h2{margin:0 0 18px}
     <button class="btn active" id="leaderboardTab">🏆 Leaderboard</button>
     <button class="btn" id="newsTab">📰 News</button>
     <button class="btn" id="hallOfFameTab">🏆 Hall of Fame</button>
+    <button class="btn" id="communityVoteTab">🗳️ Community Vote</button>
   </nav>
 
   <section id="leaderboardPage">
@@ -220,6 +237,35 @@ dialog h2{margin:0 0 18px}
     <div class="toolbar" style="margin-top:20px"><button class="btn primary" id="addHallLegendBtn" hidden>+ Add retired legend</button></div>
     <div id="hallOfFameCount" class="section-heading"></div>
     <div id="hallOfFameList" class="hall-grid"></div>
+  </section>
+
+
+  <section id="communityVotePage" class="hidden">
+    <div class="eyebrow">Simulated community poll</div>
+    <h1>COMMUNITY <span style="color:var(--lime)">VOTE.</span></h1>
+    <div class="subtitle">A sandbox community poll powered by simulated bot votes. These results are labeled simulations and do not change real profile scores or visitor votes.</div>
+    <div class="stats">
+      <div class="stat"><strong id="communityBotTotal">0</strong><small>SIMULATED BOT VOTES</small></div>
+      <div class="stat"><strong id="communityCycleClock">—</strong><small>VOTING CYCLE RESETS IN</small></div>
+    </div>
+    <div class="community-panel">
+      <div class="section-heading">⚙️ ADMIN VOTE CONTROL</div>
+      <div id="communityAdminNote" class="muted">Only the admin can configure simulated votes.</div>
+      <div class="community-grid" style="margin-top:14px">
+        <div><label for="communityBotCount">How many bots vote per category?</label><input id="communityBotCount" type="number" min="1" max="10000" value="100"></div>
+        <div><label for="communityCycleLength">Voting cycle length</label><select id="communityCycleLength"><option value="1">24 hours</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></div>
+      </div>
+      <div class="section-heading" style="margin-top:18px">CHOOSE MULTIPLE PEOPLE AND VOTE TYPES</div>
+      <div class="muted">Select any people below. Each selected category distributes the chosen bot count across its selected people.</div>
+      <div id="communityTargetList" class="community-targets"></div>
+      <button class="btn primary" id="saveCommunityVoteConfig" type="button">Save simulated vote setup</button>
+      <button class="btn" id="resetCommunityVoteCycle" type="button">Reset voting cycle now</button>
+      <div id="communitySaveStatus" class="muted" style="margin-top:10px"></div>
+    </div>
+    <div class="community-results">
+      <div class="community-result"><div class="feature-title">📈 TOP RISING</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityRisingResults"></div></div>
+      <div class="community-result"><div class="feature-title">🔥 MOST OVERRATED</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityOverratedResults"></div></div>
+    </div>
   </section>
 
   <section id="newsPage" class="hidden">
@@ -332,6 +378,8 @@ let cloudReady=false;
 const STORAGE_KEY="hash-rankings-v1";
 const NEWS_KEY="hash-rankings-news-v1";
 const VOTES_KEY="hash-rankings-votes-v1";
+const COMMUNITY_CONFIG_ID="__community_vote_config__";
+const COMMUNITY_CONFIG_KEY="hash-rankings-community-vote-v1";
 
 const categories=["Aesthetics","Frame","Facial Harmony","Status","Consistency","Momentum"];
 const defaultInfluence={"Aesthetics":8,"Frame":5,"Facial Harmony":20,"Status":18,"Consistency":5,"Momentum":24};
@@ -380,6 +428,9 @@ let activeProfileId=null;
 let newsPhotoData="";
 let editingNewsId=null;
 let clearExtraPhotos=false;
+let communityVoteConfig=readJSON(COMMUNITY_CONFIG_KEY,{botCount:100,cycleLength:7,cycleEndsAt:Date.now()+7*86400000,targets:[]});
+if(!communityVoteConfig||typeof communityVoteConfig!=="object")communityVoteConfig={botCount:100,cycleLength:7,cycleEndsAt:Date.now()+7*86400000,targets:[]};
+let communityCycleTimer=null;
 let votes=readJSON(VOTES_KEY,{});
 if(!votes||typeof votes!=="object"||Array.isArray(votes))votes={};
 
@@ -590,6 +641,14 @@ function updateExtraPhotoCount(){
 document.getElementById("leaderboardTab").addEventListener("click",()=>showPage("leaderboard"));
 document.getElementById("newsTab").addEventListener("click",()=>showPage("news"));
 document.getElementById("hallOfFameTab").addEventListener("click",()=>showPage("hall"));
+document.getElementById("communityVoteTab").addEventListener("click",()=>showPage("community"));
+document.getElementById("saveCommunityVoteConfig").addEventListener("click",saveCommunityVoteSetup);
+document.getElementById("resetCommunityVoteCycle").addEventListener("click",()=>{
+ if(!isAdmin){alert("Only the admin can reset the voting cycle.");return}
+ communityVoteConfig.cycleEndsAt=Date.now()+Number(communityVoteConfig.cycleLength||7)*86400000;
+ saveCommunityVoteConfig();renderCommunityVote();
+});
+
 function showPage(page){
  const isNews=page==="news";const isHall=page==="hall";
  document.getElementById("leaderboardPage").classList.toggle("hidden",isNews||isHall);
@@ -598,6 +657,10 @@ function showPage(page){
  document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall);
  document.getElementById("newsTab").classList.toggle("active",isNews);
  document.getElementById("hallOfFameTab").classList.toggle("active",isHall);
+ const isCommunity=page==="community";
+ document.getElementById("communityVotePage").classList.toggle("hidden",!isCommunity);
+ document.getElementById("communityVoteTab").classList.toggle("active",isCommunity);
+ if(isCommunity)renderCommunityVote();
  if(isNews)renderNews();if(isHall)renderHallOfFame();
 }
 
@@ -768,6 +831,91 @@ document.getElementById("hallOfFameList").addEventListener("keydown",event=>{
  if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-profile]")){event.preventDefault();openProfile(event.target.dataset.profile)}
 });
 
+
+function communityTargetMap(){
+ const map={};
+ (Array.isArray(communityVoteConfig.targets)?communityVoteConfig.targets:[]).forEach(t=>{
+  if(t&&t.memberId)map[String(t.memberId)]={rising:!!t.rising,overrated:!!t.overrated};
+ });
+ return map;
+}
+function renderCommunityVote(){
+ const adminNote=document.getElementById("communityAdminNote");
+ const countInput=document.getElementById("communityBotCount");
+ const cycleInput=document.getElementById("communityCycleLength");
+ countInput.value=String(Math.max(1,Math.min(10000,Number(communityVoteConfig.botCount)||100)));
+ cycleInput.value=String([1,3,7,14,30].includes(Number(communityVoteConfig.cycleLength))?communityVoteConfig.cycleLength:7);
+ countInput.disabled=!isAdmin;cycleInput.disabled=!isAdmin;
+ document.getElementById("saveCommunityVoteConfig").hidden=!isAdmin;
+ document.getElementById("resetCommunityVoteCycle").hidden=!isAdmin;
+ adminNote.textContent=isAdmin?"Admin mode: choose targets, categories, and simulated bot count. Changes sync for all visitors.":"Viewing shared simulated poll results. Only the admin can configure these simulations.";
+ const selected=communityTargetMap();
+ const list=document.getElementById("communityTargetList");
+ const active=members.filter(m=>!m.hallOfFame).slice().sort((a,b)=>a.name.localeCompare(b.name));
+ list.innerHTML=active.length?active.map(m=>{
+  const v=selected[m.id]||{rising:false,overrated:false};
+  return '<div class="community-target"><input type="checkbox" class="community-target-enabled" data-community-id="'+esc(m.id)+'" aria-label="Select '+esc(m.name)+'" '+((v.rising||v.overrated)?'checked':'')+(isAdmin?'':' disabled')+'><div class="community-target-name">'+esc(m.name)+'<div class="muted">Score '+esc(m.score)+'</div></div><div><label class="muted" for="community-kind-'+esc(m.id)+'">Vote category</label><select id="community-kind-'+esc(m.id)+'" class="community-target-kind" data-community-kind="'+esc(m.id)+'" '+(isAdmin?'':'disabled')+'><option value="both" '+(v.rising&&v.overrated?'selected':'')+'>Both categories</option><option value="rising" '+(v.rising&&!v.overrated?'selected':'')+'>Top Rising</option><option value="overrated" '+(v.overrated&&!v.rising?'selected':'')+'>Most Overrated</option></select></div></div>';
+ }).join(""):'<div class="empty">Add some profiles first to include them in the poll.</div>';
+ const rising=communityVoteResults("rising");
+ const overrated=communityVoteResults("overrated");
+ document.getElementById("communityRisingResults").innerHTML=communityResultMarkup(rising);
+ document.getElementById("communityOverratedResults").innerHTML=communityResultMarkup(overrated);
+ const total=rising.reduce((n,r)=>n+r.votes,0)+overrated.reduce((n,r)=>n+r.votes,0);
+ document.getElementById("communityBotTotal").textContent=total.toLocaleString();
+ updateCommunityCycleClock();
+ if(communityCycleTimer)clearInterval(communityCycleTimer);
+ communityCycleTimer=setInterval(updateCommunityCycleClock,1000);
+}
+function communityVoteResults(kind){
+ const targets=(Array.isArray(communityVoteConfig.targets)?communityVoteConfig.targets:[]).filter(t=>t&&t[kind]&&members.some(m=>m.id===String(t.memberId)&&!m.hallOfFame));
+ if(!targets.length)return [];
+ const botCount=Math.max(1,Math.min(10000,Number(communityVoteConfig.botCount)||100));
+ const sorted=targets.slice().sort((a,b)=>String(a.memberId).localeCompare(String(b.memberId)));
+ const base=Math.floor(botCount/sorted.length),extra=botCount%sorted.length;
+ return sorted.map((t,i)=>({member:getMember(String(t.memberId)),votes:base+(i<extra?1:0)})).filter(r=>r.member).sort((a,b)=>b.votes-a.votes||a.member.name.localeCompare(b.member.name));
+}
+function communityResultMarkup(results){
+ if(!results.length)return '<div class="empty" style="margin-top:12px">No targets selected for this category yet.</div>';
+ return results.map((r,i)=>'<div class="community-result-row"><span class="community-result-rank">#'+(i+1)+'</span><div class="avatar" style="width:36px;height:36px;border-radius:9px;flex-shrink:0">'+avatarContent(r.member)+'</div><div style="min-width:0"><div class="community-target-name">'+esc(r.member.name)+'</div><span class="community-chip">SIMULATED</span></div><span class="community-result-count">'+r.votes.toLocaleString()+' votes</span></div>').join("");
+}
+function updateCommunityCycleClock(){
+ const el=document.getElementById("communityCycleClock");if(!el)return;
+ let remaining=Number(communityVoteConfig.cycleEndsAt)-Date.now();
+ if(!Number.isFinite(remaining)||remaining<=0){
+  if(isAdmin){
+   communityVoteConfig.cycleEndsAt=Date.now()+Number(communityVoteConfig.cycleLength||7)*86400000;
+   saveCommunityVoteConfig();
+  }else{
+   communityVoteConfig.cycleEndsAt=Date.now()+Number(communityVoteConfig.cycleLength||7)*86400000;
+  }
+  remaining=Number(communityVoteConfig.cycleEndsAt)-Date.now();
+ }
+ const seconds=Math.max(0,Math.floor(remaining/1000));
+ const days=Math.floor(seconds/86400),hours=Math.floor((seconds%86400)/3600),minutes=Math.floor((seconds%3600)/60),secs=seconds%60;
+ el.textContent=(days?days+"d ":"")+String(hours).padStart(2,"0")+":"+String(minutes).padStart(2,"0")+":"+String(secs).padStart(2,"0");
+}
+function saveCommunityVoteSetup(){
+ if(!isAdmin){alert("Only the admin can configure simulated community votes.");return}
+ const botCount=Math.max(1,Math.min(10000,Math.floor(Number(document.getElementById("communityBotCount").value)||1)));
+ const cycleLength=Number(document.getElementById("communityCycleLength").value)||7;
+ const targets=[];
+ document.querySelectorAll(".community-target-enabled:checked").forEach(input=>{
+  const id=input.dataset.communityId;
+  const kind=document.querySelector('[data-community-kind="'+CSS.escape(id)+'"]');
+  const value=kind?kind.value:"both";
+  targets.push({memberId:id,rising:value==="rising"||value==="both",overrated:value==="overrated"||value==="both"});
+ });
+ communityVoteConfig={botCount:botCount,cycleLength:cycleLength,cycleEndsAt:Date.now()+cycleLength*86400000,targets:targets};
+ try{localStorage.setItem(COMMUNITY_CONFIG_KEY,JSON.stringify(communityVoteConfig))}catch{}
+ document.getElementById("communitySaveStatus").textContent="Saved "+botCount.toLocaleString()+" simulated bots across "+targets.length+" selected profile(s).";
+ saveCommunityVoteConfig();
+ renderCommunityVote();
+}
+function saveCommunityVoteConfig(){
+ try{localStorage.setItem(COMMUNITY_CONFIG_KEY,JSON.stringify(communityVoteConfig))}catch{}
+ if(isAdmin&&supabaseClient)syncNewsToCloud();
+}
+
 function renderNews(){
  if(purgeExpiredNews())return renderNews();
  const list=document.getElementById("newsList");
@@ -886,10 +1034,11 @@ async function syncNewsToCloud(){
  if(!supabaseClient||!isAdmin)return;
  try{
   const payload=news.map(n=>({id:String(n.id),data:n}));
+  payload.push({id:COMMUNITY_CONFIG_ID,data:{type:"community-vote-config",...communityVoteConfig}});
   if(payload.length){const {error}=await supabaseClient.from("hash_news").upsert(payload,{onConflict:"id"});if(error)throw error}
   const {data:existing,error:readError}=await supabaseClient.from("hash_news").select("id");
   if(readError)throw readError;
-  const keep=new Set(news.map(n=>String(n.id)));
+  const keep=new Set(news.map(n=>String(n.id)));keep.add(COMMUNITY_CONFIG_ID);
   const stale=(existing||[]).filter(row=>!keep.has(String(row.id))).map(row=>row.id);
   if(stale.length){const {error}=await supabaseClient.from("hash_news").delete().in("id",stale);if(error)throw error}
   cloudReady=true;
@@ -905,7 +1054,16 @@ async function loadCloudData(){
   if(memberError)throw memberError;if(newsError)throw newsError;
   if(memberRows&&memberRows.length){members=memberRows.map(row=>row.data);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}catch{}}
   else if(isAdmin){await syncMembersToCloud()}
-  if(newsRows&&newsRows.length){news=newsRows.map(row=>row.data);try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}catch{}}
+  if(newsRows&&newsRows.length){
+   const configRow=newsRows.find(row=>String(row.id)===COMMUNITY_CONFIG_ID);
+   if(configRow&&configRow.data&&configRow.data.type==="community-vote-config"){
+    communityVoteConfig={...communityVoteConfig,...configRow.data};
+    delete communityVoteConfig.type;
+    try{localStorage.setItem(COMMUNITY_CONFIG_KEY,JSON.stringify(communityVoteConfig))}catch{}
+   }
+   news=newsRows.filter(row=>String(row.id)!==COMMUNITY_CONFIG_ID).map(row=>row.data);
+   try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}catch{}
+  }
   else if(isAdmin){await syncNewsToCloud()}
   /* Use Supabase vote records for this browser, not any old device-only votes. */
   votes={};
