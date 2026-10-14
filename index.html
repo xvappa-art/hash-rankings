@@ -191,7 +191,7 @@ dialog h2{margin:0 0 18px}
 <header>
   <div class="logo">HASH <span>RANKINGS</span></div>
   <div class="status">COMMUNITY LEADERBOARD</div>
-  <button class="btn" id="adminAccessBtn" type="button">Admin login</button>
+  <button class="btn" id="adminAccessBtn" type="button">Sign in / Sign up</button>
 </header>
 
 <main>
@@ -395,6 +395,7 @@ const SUPABASE_PUBLISHABLE_KEY="sb_publishable_rTzZ47dtU-oXMMlpMPfOpw_qAGda20Y";
 const ADMIN_EMAIL="t2025358@gmail.com";
 let supabaseClient=null;
 let isAdmin=false;
+let currentUserEmail="";
 let cloudReady=false;
 const STORAGE_KEY="hash-rankings-v1";
 const NEWS_KEY="hash-rankings-news-v1";
@@ -1080,7 +1081,7 @@ function applyAdminUI(){
  const ids=["addBtn","addNewsBtn","publishNewsPageBtn","editProfileBtn","addHallLegendBtn"];
  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=!isAdmin});
  const access=document.getElementById("adminAccessBtn");
- if(access)access.textContent=isAdmin?"Admin: "+ADMIN_EMAIL+" · Sign out":"Admin login";
+ if(access)access.textContent=currentUserEmail?(isAdmin?"Admin: "+currentUserEmail+" · Sign out":"Signed in: "+currentUserEmail+" · Sign out"):"Sign in / Sign up";
  render();renderNews();
  if(!document.getElementById("communityVotePage").classList.contains("hidden"))renderCommunityVote();
 }
@@ -1146,26 +1147,35 @@ async function loadCloudData(){
  }
 }
 document.getElementById("adminAccessBtn").addEventListener("click",async()=>{
- if(isAdmin){
-  await supabaseClient.auth.signOut();return;
+ if(!supabaseClient){alert("Sign-in is still loading. Please wait a moment and try again.");return}
+ if(currentUserEmail){
+  const {error}=await supabaseClient.auth.signOut();
+  if(error){console.error(error);alert("Could not sign out: "+error.message)}
+  return;
  }
- const email=prompt("Enter the admin email to receive a secure sign-in link:");
+ const email=prompt("Enter your email address. We'll send you a secure sign-in link (no password needed):");
  if(!email)return;
- if(email.trim().toLowerCase()!==ADMIN_EMAIL){alert("That email is not the configured admin account.");return}
- const {error}=await supabaseClient.auth.signInWithOtp({email:ADMIN_EMAIL,options:{emailRedirectTo:"https://hash-rankings.vercel.app/"}});
+ const cleanEmail=email.trim().toLowerCase();
+ if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)){alert("Please enter a valid email address.");return}
+ const {error}=await supabaseClient.auth.signInWithOtp({
+  email:cleanEmail,
+  options:{emailRedirectTo:"https://hash-rankings.vercel.app/",shouldCreateUser:true}
+ });
  if(error){console.error(error);alert("Could not send the sign-in link: "+error.message);return}
- alert("A secure sign-in link was sent to "+ADMIN_EMAIL+". Open it on this device, then return to the site.");
+ alert("Check "+cleanEmail+" for your secure sign-in link. Open it to finish signing in. New email addresses can create an account this way.");
 });
 async function initCloud(){
  try{
   if(!window.supabase?.createClient)throw new Error("Supabase client library did not load.");
   supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
   const {data:{session}}=await supabaseClient.auth.getSession();
-  isAdmin=!!session&&String(session.user?.email||"").toLowerCase()===ADMIN_EMAIL;
+  currentUserEmail=String(session?.user?.email||"").toLowerCase();
+  isAdmin=!!session&&currentUserEmail===ADMIN_EMAIL;
   applyAdminUI();
   await loadCloudData();
   supabaseClient.auth.onAuthStateChange(async(_event,sessionNow)=>{
-   isAdmin=!!sessionNow&&String(sessionNow.user?.email||"").toLowerCase()===ADMIN_EMAIL;
+   currentUserEmail=String(sessionNow?.user?.email||"").toLowerCase();
+   isAdmin=!!sessionNow&&currentUserEmail===ADMIN_EMAIL;
    applyAdminUI();
    await loadCloudData();
    if(isAdmin){
