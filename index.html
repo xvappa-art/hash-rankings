@@ -126,6 +126,17 @@ dialog h2{margin:0 0 18px}
 .extra-photo img{width:100%;height:100%;display:block;cursor:pointer}
 .extra-photo a{display:block;width:100%;height:100%}
 .extra-empty{color:var(--muted);font-size:12px}
+.hall-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px}
+.hall-card{background:linear-gradient(145deg,#25271f,#171914);border:1px solid #6b642e;border-radius:15px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
+.hall-card:hover{transform:translateY(-2px);border-color:var(--lime)}
+.hall-card-top{display:flex;align-items:center;gap:12px;padding:16px}
+.hall-card .avatar{width:58px;height:58px;border:1px solid #6b642e}
+.hall-card-info{min-width:0;flex:1}
+.hall-badge{display:inline-block;color:#171914;background:var(--lime);font-size:10px;font-weight:950;letter-spacing:1px;border-radius:5px;padding:4px 7px;margin-bottom:7px}
+.hall-name{font-size:18px;font-weight:950;overflow-wrap:anywhere}
+.hall-score{color:var(--lime);font-size:12px;font-weight:900;margin-top:4px}
+.hall-description{color:var(--muted);font-size:12px;line-height:1.6;padding:0 16px 14px;overflow-wrap:anywhere}
+.hall-actions{display:flex;justify-content:flex-end;gap:7px;padding:0 12px 12px}
 @media(max-width:520px){
   main{padding:25px 10px 40px}
   header{padding:18px 12px}.status{display:none}
@@ -153,6 +164,7 @@ dialog h2{margin:0 0 18px}
   <nav class="nav" aria-label="Main navigation">
     <button class="btn active" id="leaderboardTab">🏆 Leaderboard</button>
     <button class="btn" id="newsTab">📰 News</button>
+    <button class="btn" id="hallOfFameTab">🏆 Hall of Fame</button>
   </nav>
 
   <section id="leaderboardPage">
@@ -199,6 +211,14 @@ dialog h2{margin:0 0 18px}
       </div>
       <div id="leaderboard"></div>
     </section>
+  </section>
+
+  <section id="hallOfFamePage" class="hidden">
+    <div class="eyebrow">Forever remembered</div>
+    <h1>HALL OF <span style="color:var(--lime)">FAME.</span></h1>
+    <div class="subtitle">The legends and retired 1in1s who made HASH RANKINGS history. Their legacy stays here.</div>
+    <div id="hallOfFameCount" class="section-heading"></div>
+    <div id="hallOfFameList" class="hall-grid"></div>
   </section>
 
   <section id="newsPage" class="hidden">
@@ -249,6 +269,7 @@ dialog h2{margin:0 0 18px}
   </div>
 
   <div class="form-field"><label for="memberNote">Short leaderboard note</label><input id="memberNote" maxlength="160" placeholder="Short note under their name"></div>
+  <div class="form-field"><label><input id="memberHallOfFame" type="checkbox" style="width:auto;margin-right:8px"> Hall of Fame / retired legend</label><div class="help">Retired members leave the active leaderboard but keep their profile and peak score here. You can uncheck this any time.</div></div>
   <div class="form-buttons">
     <button class="btn" type="button" id="cancelBtn">Cancel</button>
     <button class="btn primary" type="submit">Save member</button>
@@ -340,6 +361,8 @@ function loadMembers(){
   tags:Array.isArray(m.tags)?m.tags:[],
   extraPhotos:Array.isArray(m.extraPhotos)?m.extraPhotos:[],
   influence:{...defaultInfluence,...(m.influence||{})},
+  hallOfFame:m.hallOfFame===true,
+  peakScore:Number(m.peakScore??m.score)||0,
   created:Number(m.created)||Date.now()+i
  }));
 }
@@ -393,7 +416,7 @@ function avatarContent(m){
  return photo?`<img src="${esc(photo)}" alt="${esc(m.name)}">`:esc((m.name.trim()[0]||"?").toUpperCase());
 }
 function sortedMembers(){
- return members.slice().sort((a,b)=>Number(b.score)-Number(a.score)||a.name.localeCompare(b.name));
+ return members.filter(m=>!m.hallOfFame).slice().sort((a,b)=>Number(b.score)-Number(a.score)||a.name.localeCompare(b.name));
 }
 function getMember(id){return members.find(m=>m.id===id)}
 function dateLabel(value){
@@ -429,7 +452,7 @@ function renderPodium(){
 }
 
 function renderMovements(){
- const changed=members.map(m=>({member:m,change:m.previousScore==null?0:Number(m.score)-Number(m.previousScore)}))
+ const changed=members.filter(m=>!m.hallOfFame).map(m=>({member:m,change:m.previousScore==null?0:Number(m.score)-Number(m.previousScore)}))
   .filter(x=>x.change!==0&&Number.isFinite(x.change));
  function row(m,change){
   return `<div class="movement-item"><div class="movement-avatar">${avatarContent(m)}</div>
@@ -444,10 +467,11 @@ function renderMovements(){
 }
 
 function render(){
- renderPodium();renderMovements();
+ renderPodium();renderMovements();renderHallOfFame();
+ const activeMembers=members.filter(m=>!m.hallOfFame);
  const query=document.getElementById("search").value.trim().toLowerCase();
  const sort=document.getElementById("sort").value;
- let visible=members.filter(m=>
+ let visible=activeMembers.filter(m=>
   m.name.toLowerCase().includes(query)||
   (m.note||"").toLowerCase().includes(query)||
   (m.title||"").toLowerCase().includes(query)||
@@ -457,8 +481,8 @@ function render(){
  if(sort==="low")visible.sort((a,b)=>a.score-b.score||a.name.localeCompare(b.name));
  if(sort==="name")visible.sort((a,b)=>a.name.localeCompare(b.name));
  if(sort==="new")visible.sort((a,b)=>b.created-a.created);
- document.getElementById("memberCount").textContent=members.length;
- document.getElementById("topScore").textContent=members.length?Math.max(...members.map(m=>Number(m.score))):"—";
+ document.getElementById("memberCount").textContent=activeMembers.length;
+ document.getElementById("topScore").textContent=activeMembers.length?Math.max(...activeMembers.map(m=>Number(m.score))):"—";
 
  const board=document.getElementById("leaderboard");
  if(!visible.length){board.innerHTML='<div class="empty">No members found. Try another search or add someone.</div>';return}
@@ -535,6 +559,7 @@ function openAdd(){
  form.reset();document.getElementById("memberId").value="";
  document.getElementById("dialogTitle").textContent="Add member";
  document.getElementById("memberScore").value=50;
+ document.getElementById("memberHallOfFame").checked=false;
  fillInfluenceForm(defaultInfluence);photoData="";pendingExtraPhotos=[];clearExtraPhotos=false;
  preview.src="";preview.style.display="none";document.getElementById("removePhoto").hidden=true;
  updateExtraPhotoCount();memberDialog.showModal();
@@ -550,6 +575,7 @@ function openEdit(id){
  document.getElementById("memberTags").value=(m.tags||[]).join(", ");
  document.getElementById("memberOverview").value=m.overview||"";
  document.getElementById("memberNote").value=m.note||"";
+ document.getElementById("memberHallOfFame").checked=m.hallOfFame===true;
  fillInfluenceForm(m.influence||defaultInfluence);
  photoData=m.photo||"";preview.src=safeURL(photoData);preview.style.display=photoData?"block":"none";
  document.getElementById("removePhoto").hidden=!photoData;
@@ -562,13 +588,16 @@ function updateExtraPhotoCount(){
 
 document.getElementById("leaderboardTab").addEventListener("click",()=>showPage("leaderboard"));
 document.getElementById("newsTab").addEventListener("click",()=>showPage("news"));
+document.getElementById("hallOfFameTab").addEventListener("click",()=>showPage("hall"));
 function showPage(page){
- const isNews=page==="news";
- document.getElementById("leaderboardPage").classList.toggle("hidden",isNews);
+ const isNews=page==="news";const isHall=page==="hall";
+ document.getElementById("leaderboardPage").classList.toggle("hidden",isNews||isHall);
  document.getElementById("newsPage").classList.toggle("hidden",!isNews);
- document.getElementById("leaderboardTab").classList.toggle("active",!isNews);
+ document.getElementById("hallOfFamePage").classList.toggle("hidden",!isHall);
+ document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall);
  document.getElementById("newsTab").classList.toggle("active",isNews);
- if(isNews)renderNews();
+ document.getElementById("hallOfFameTab").classList.toggle("active",isHall);
+ if(isNews)renderNews();if(isHall)renderHallOfFame();
 }
 
 document.getElementById("addBtn").addEventListener("click",()=>{if(isAdmin)openAdd();else alert("Sign in with the admin account to manage profiles.")});
@@ -669,6 +698,8 @@ form.addEventListener("submit",event=>{
   id:existing?existing.id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),
   name,score,title,tiktok:rawTikTok?safeURL(rawTikTok):"",tags,overview,note,
   photo:photoData,extraPhotos:[...pendingExtraPhotos],influence,
+  hallOfFame:document.getElementById("memberHallOfFame").checked,
+  peakScore:existing?Math.max(Number(existing.peakScore??existing.score),score):score,
   created:existing?existing.created:Date.now(),
   previousScore:existing?(Number(score)!==Number(existing.score)?Number(existing.score):existing.previousScore):undefined
  };
@@ -707,6 +738,27 @@ function storyPhoto(story){
  const m=getMember(story.memberId);
  return m?safeURL(m.photo):"";
 }
+function renderHallOfFame(){
+ const list=document.getElementById("hallOfFameList");if(!list)return;
+ const legends=members.filter(m=>m.hallOfFame).sort((a,b)=>Number(b.peakScore??b.score)-Number(a.peakScore??a.score)||a.name.localeCompare(b.name));
+ document.getElementById("hallOfFameCount").textContent=legends.length+(legends.length===1?" LEGEND IMMORTALIZED":" LEGENDS IMMORTALIZED");
+ if(!legends.length){list.innerHTML='<div class="empty" style="grid-column:1/-1">No legends yet. Sign in as admin, edit a member, and mark them as a Hall of Fame legend.</div>';return}
+ list.innerHTML=legends.map(m=>{
+  const description=esc(m.hallOfFameNote||m.overview||m.note||"A HASH RANKINGS legend. Forever remembered.");
+  const adminActions=isAdmin?'<div class="hall-actions"><button class="btn" data-hall-edit="' + esc(m.id) + '" type="button">Edit legend</button></div>':"";
+  return '<article class="hall-card" data-profile="' + esc(m.id) + '" tabindex="0" role="button" aria-label="Open ' + esc(m.name) + ' profile">' +
+   '<div class="hall-card-top"><div class="avatar">' + avatarContent(m) + '</div><div class="hall-card-info"><div class="hall-badge">★ HALL OF FAME</div><div class="hall-name">' + esc(m.name) + '</div><div class="hall-score">Peak score: ' + Number(m.peakScore??m.score) + ' / 100</div></div></div>' +
+   '<div class="hall-description">' + description + '</div>' + adminActions + '</article>';
+ }).join("");
+}
+document.getElementById("hallOfFameList").addEventListener("click",event=>{
+ const edit=event.target.closest("[data-hall-edit]");if(edit){event.stopPropagation();openEdit(edit.dataset.hallEdit);return}
+ const profile=event.target.closest("[data-profile]");if(profile)openProfile(profile.dataset.profile);
+});
+document.getElementById("hallOfFameList").addEventListener("keydown",event=>{
+ if((event.key==="Enter"||event.key===" ")&&event.target.matches("[data-profile]")){event.preventDefault();openProfile(event.target.dataset.profile)}
+});
+
 function renderNews(){
  const list=document.getElementById("newsList");
  if(!news.length){list.innerHTML='<div class="empty">No news yet. Publish the first story.</div>';return}
