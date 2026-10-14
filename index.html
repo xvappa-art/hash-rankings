@@ -160,7 +160,7 @@ dialog h2{margin:0 0 18px}
 .community-target input[type=checkbox]{width:auto;accent-color:var(--lime)}
 .community-target-name{font-weight:800;overflow-wrap:anywhere}
 .community-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.community-result{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}
+.community-result{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}.feature-title.rising-title{color:#2fbf65}.feature-title.overrated-title{color:#ef4444}
 .community-result-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.community-result-row.rising-leader{background:rgba(65,190,105,.13);border:1px solid rgba(65,190,105,.55);border-radius:10px;padding:10px;margin:5px 0}.community-result-row.overrated-leader{background:rgba(230,65,65,.13);border:1px solid rgba(230,65,65,.58);border-radius:10px;padding:10px;margin:5px 0}.community-result-row.rising-leader .community-result-rank,.community-result-row.rising-leader .community-result-count{color:#2fbf65}.community-result-row.overrated-leader .community-result-rank,.community-result-row.overrated-leader .community-result-count{color:#ef4444}
 .community-result-row:last-child{border-bottom:0}
 .community-result-rank{color:var(--lime);font-weight:900;width:24px}
@@ -263,8 +263,8 @@ dialog h2{margin:0 0 18px}
       <div id="communitySaveStatus" class="muted" style="margin-top:10px"></div>
     </div>
     <div class="community-results">
-      <div class="community-result"><div class="feature-title">📈 TOP RISING</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityRisingResults"></div></div>
-      <div class="community-result"><div class="feature-title">🔥 MOST OVERRATED</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityOverratedResults"></div></div>
+      <div class="community-result"><div class="feature-title rising-title">📈 TOP RISING</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityRisingResults"></div></div>
+      <div class="community-result"><div class="feature-title overrated-title">👎 MOST OVERRATED</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityOverratedResults"></div></div>
     </div>
   </section>
 
