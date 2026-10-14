@@ -7,7 +7,7 @@
 <style>
 :root {
   --bg:#10110f;--panel:#191b18;--panel2:#20231e;
-  --lime:#c5ff45;--text:#f4f5ef;--muted:#92968c;
+  --lime:#ff922b;--text:#f4f5ef;--muted:#92968c;
   --border:#30332c;--red:#ff6868;
 }
 *{box-sizing:border-box}
@@ -77,7 +77,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--lime)}
 .actions{display:flex;justify-content:flex-end;gap:4px;flex-wrap:wrap}
 .icon-btn{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:7px;min-width:29px;height:32px}
 .icon-btn:hover{color:var(--lime);border-color:var(--lime)}
-.vote-btn{color:var(--lime);border-color:#414b2d}
+.vote-btn{color:var(--lime);border-color:#69411f}
 .vote-btn:disabled{opacity:.4;cursor:not-allowed}
 .empty{text-align:center;padding:40px 12px;color:var(--muted)}
 footer{text-align:center;color:var(--muted);font-size:12px;line-height:1.6;margin-top:25px}
@@ -105,19 +105,19 @@ dialog h2{margin:0 0 18px}
 .profile-avatar{width:82px;height:82px;flex-shrink:0;display:grid;place-items:center;overflow:hidden;background:#292d23;color:var(--lime);border-radius:17px;font-size:28px;font-weight:950}
 .profile-name{font-size:29px;font-weight:950;overflow-wrap:anywhere}
 .profile-title{color:var(--lime);font-size:13px;font-weight:800;margin-top:4px}
-.profile-score{display:inline-block;margin-top:9px;padding:7px 10px;border-radius:8px;background:#252b1b;color:var(--lime);font-weight:900}
+.profile-score{display:inline-block;margin-top:9px;padding:7px 10px;border-radius:8px;background:#302115;color:var(--lime);font-weight:900}
 .profile-section{border-top:1px solid var(--border);padding:18px 0}
 .profile-section h3{font-size:12px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:0 0 13px}
 .profile-tags{display:flex;gap:7px;flex-wrap:wrap}
-.profile-tag{border:1px solid #414b2d;background:#252b1b;border-radius:100px;padding:7px 10px;color:var(--lime);font-size:12px;font-weight:800}
+.profile-tag{border:1px solid #69411f;background:#302115;border-radius:100px;padding:7px 10px;color:var(--lime);font-size:12px;font-weight:800}
 .profile-overview{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px;color:#dedfd8}
 .tiktok-link{display:inline-block;padding:10px 13px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;color:var(--lime);text-decoration:none;overflow-wrap:anywhere}
 .chart-wrap{max-width:430px;margin:auto}
 #influenceChart{width:100%;height:auto;display:block;overflow:visible}
-.chart-grid{fill:none;stroke:#41453b;stroke-width:1}
-.chart-axis{stroke:#41453b;stroke-width:1}
-.chart-area{fill:#c5ff45;fill-opacity:.23;stroke:#c5ff45;stroke-width:2.5;stroke-linejoin:round}
-.chart-dot{fill:#c5ff45;stroke:#10110f;stroke-width:1.5}
+.chart-grid{fill:none;stroke:#51402f;stroke-width:1}
+.chart-axis{stroke:#51402f;stroke-width:1}
+.chart-area{fill:#ff922b;fill-opacity:.23;stroke:#ff922b;stroke-width:2.5;stroke-linejoin:round}
+.chart-dot{fill:#ff922b;stroke:#10110f;stroke-width:1.5}
 .influence-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:14px}
 .influence-row{display:flex;justify-content:space-between;gap:8px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;padding:11px;font-size:12px}
 .influence-row strong{color:var(--lime);white-space:nowrap}
@@ -127,10 +127,10 @@ dialog h2{margin:0 0 18px}
 .extra-photo a{display:block;width:100%;height:100%}
 .extra-empty{color:var(--muted);font-size:12px}
 .hall-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:22px}
-.hall-card{background:linear-gradient(145deg,#25271f,#171914);border:1px solid #6b642e;border-radius:15px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
+.hall-card{background:linear-gradient(145deg,#282019,#171914);border:1px solid #805020;border-radius:15px;overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s}
 .hall-card:hover{transform:translateY(-2px);border-color:var(--lime)}
 .hall-card-top{display:flex;align-items:center;gap:12px;padding:16px}
-.hall-card .avatar{width:58px;height:58px;border:1px solid #6b642e}
+.hall-card .avatar{width:58px;height:58px;border:1px solid #805020}
 .hall-card-info{min-width:0;flex:1}
 .hall-badge{display:inline-block;color:#171914;background:var(--lime);font-size:10px;font-weight:950;letter-spacing:1px;border-radius:5px;padding:4px 7px;margin-bottom:7px}
 .hall-name{font-size:18px;font-weight:950;overflow-wrap:anywhere}
