@@ -217,6 +217,7 @@ dialog h2{margin:0 0 18px}
     <div class="eyebrow">Forever remembered</div>
     <h1>HALL OF <span style="color:var(--lime)">FAME.</span></h1>
     <div class="subtitle">The legends and retired 1in1s who made HASH RANKINGS history. Their legacy stays here.</div>
+    <div class="toolbar" style="margin-top:20px"><button class="btn primary" id="addHallLegendBtn" hidden>+ Add retired legend</button></div>
     <div id="hallOfFameCount" class="section-heading"></div>
     <div id="hallOfFameList" class="hall-grid"></div>
   </section>
@@ -601,6 +602,12 @@ function showPage(page){
 }
 
 document.getElementById("addBtn").addEventListener("click",()=>{if(isAdmin)openAdd();else alert("Sign in with the admin account to manage profiles.")});
+document.getElementById("addHallLegendBtn").addEventListener("click",()=>{
+ if(!isAdmin){alert("Sign in with the admin account to add retired legends.");return}
+ openAdd();
+ document.getElementById("dialogTitle").textContent="Add Hall of Fame legend";
+ document.getElementById("memberHallOfFame").checked=true;
+});
 document.getElementById("cancelBtn").addEventListener("click",()=>memberDialog.close());
 document.getElementById("closeProfileBtn").addEventListener("click",()=>profileDialog.close());
 document.getElementById("editProfileBtn").addEventListener("click",()=>{
@@ -848,7 +855,7 @@ render();
 renderNews();
 
 function applyAdminUI(){
- const ids=["addBtn","addNewsBtn","publishNewsPageBtn","editProfileBtn"];
+ const ids=["addBtn","addNewsBtn","publishNewsPageBtn","editProfileBtn","addHallLegendBtn"];
  ids.forEach(id=>{const el=document.getElementById(id);if(el)el.hidden=!isAdmin});
  const access=document.getElementById("adminAccessBtn");
  if(access)access.textContent=isAdmin?"Admin: "+ADMIN_EMAIL+" · Sign out":"Admin login";
