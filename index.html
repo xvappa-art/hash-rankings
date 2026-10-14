@@ -874,7 +874,8 @@ function communityVoteResults(kind){
 }
 function communityResultMarkup(results){
  if(!results.length)return '<div class="empty" style="margin-top:12px">No targets selected for this category yet.</div>';
- return results.map((r,i)=>'<div class="community-result-row"><span class="community-result-rank">#'+(i+1)+'</span><div class="avatar" style="width:36px;height:36px;border-radius:9px;flex-shrink:0">'+avatarContent(r.member)+'</div><div style="min-width:0"><div class="community-target-name">'+esc(r.member.name)+'</div><span class="community-chip">SIMULATED</span></div><span class="community-result-count">'+r.votes.toLocaleString()+' votes</span></div>').join("");
+ const overallRank=new Map(sortedMembers().map((m,i)=>[String(m.id),i+1]));
+ return results.map((r,i)=>{const rank=overallRank.get(String(r.member.id));return '<div class="community-result-row"><span class="community-result-rank">#'+(i+1)+'</span><div class="avatar" style="width:36px;height:36px;border-radius:9px;flex-shrink:0">'+avatarContent(r.member)+'</div><div style="min-width:0"><div class="community-target-name">'+esc(r.member.name)+'</div><span class="community-chip">'+(rank?'OVERALL RANK #'+rank:'UNRANKED')+'</span></div><span class="community-result-count">'+r.votes.toLocaleString()+' votes</span></div>'}).join("");
 }
 function updateCommunityCycleClock(){
  const el=document.getElementById("communityCycleClock");if(!el)return;
