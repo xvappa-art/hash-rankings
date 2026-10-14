@@ -1223,7 +1223,7 @@ document.getElementById("adminAccessBtn").addEventListener("click",async()=>{
  const email=prompt("Enter your email address. We'll send you a secure sign-in link (no password needed):");
  if(!email)return;
  const cleanEmail=email.trim().toLowerCase();
- if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)){alert("Please enter a valid email address.");return}
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)){alert("Please enter a valid email address.");return}
  const {error}=await supabaseClient.auth.signInWithOtp({
   email:cleanEmail,
   options:{emailRedirectTo:"https://hash-rankings.vercel.app/",shouldCreateUser:true}
