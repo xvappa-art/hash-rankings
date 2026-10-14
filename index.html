@@ -107,6 +107,7 @@ dialog h2{margin:0 0 18px}
 .profile-name{font-size:29px;font-weight:950;overflow-wrap:anywhere}
 .profile-title{color:var(--lime);font-size:13px;font-weight:800;margin-top:4px}
 .profile-score{display:inline-block;margin-top:9px;padding:7px 10px;border-radius:8px;background:#302115;color:var(--lime);font-weight:900}
+.profile-city{font-size:12px;color:var(--muted);margin-top:8px}
 .profile-section{border-top:1px solid var(--border);padding:18px 0}
 .profile-section h3{font-size:12px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:0 0 13px}
 .profile-tags{display:flex;gap:7px;flex-wrap:wrap}
@@ -361,6 +362,7 @@ dialog h2{margin:0 0 18px}
       <div id="profileName" class="profile-name"></div>
       <div id="profileTitle" class="profile-title"></div>
       <div id="profileScore" class="profile-score"></div>
+      <div id="profileCity" class="profile-city"></div>
     </div>
   </div>
   <section class="profile-section"><h3>Profile tags</h3><div id="profileTags" class="profile-tags"></div></section>
@@ -614,6 +616,7 @@ function renderProfile(id){
  document.getElementById("profileName").textContent=m.name;
  document.getElementById("profileTitle").textContent=m.title||"";
  document.getElementById("profileScore").textContent="Score: "+Number(m.score);
+ document.getElementById("profileCity").textContent=m.city?"📍 "+m.city:"";
  document.getElementById("profileTags").innerHTML=(m.tags||[]).length?m.tags.map(tag=>`<span class="profile-tag">${esc(tag)}</span>`).join(""):'<div class="feature-empty">No tags added.</div>';
  const tiktok=safeURL(m.tiktok);
  document.getElementById("profileTikTok").innerHTML=tiktok?`<a class="tiktok-link" href="${esc(tiktok)}" target="_blank" rel="noopener noreferrer">♪ Open TikTok profile ↗</a>`:'<div class="feature-empty">No TikTok link added.</div>';
@@ -728,7 +731,7 @@ function showPage(page){
  document.getElementById("mapPage").classList.toggle("hidden",!isMap);
  document.getElementById("newsPage").classList.toggle("hidden",!isNews);
  document.getElementById("hallOfFamePage").classList.toggle("hidden",!isHall);
- document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall&&!isCommunity);
+ document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall&&!isCommunity&&!isMap);
  document.getElementById("newsTab").classList.toggle("active",isNews);
  document.getElementById("hallOfFameTab").classList.toggle("active",isHall);
  document.getElementById("communityVotePage").classList.toggle("hidden",!isCommunity);
