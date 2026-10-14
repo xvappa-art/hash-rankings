@@ -1,5 +1,5 @@
 -- HASH RANKINGS: run this entire file in Supabase Dashboard > SQL Editor > New query > Run.
--- Admin account: melikhova999g@gmail.com
+-- Admin account: t2025358@gmail.com
 -- Visitors can read profiles/news and vote. Only the signed-in admin can manage content.
 -- Photos are publicly viewable; only the admin can upload/delete them.
 
@@ -24,20 +24,20 @@ grant select on public.hash_votes to anon, authenticated;
 drop policy if exists "Public read members" on public.hash_members;
 create policy "Public read members" on public.hash_members for select to anon, authenticated using (true);
 drop policy if exists "Admin insert members" on public.hash_members;
-create policy "Admin insert members" on public.hash_members for insert to authenticated with check ((auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin insert members" on public.hash_members for insert to authenticated with check ((auth.jwt()->>'email') = 't2025358@gmail.com');
 drop policy if exists "Admin update members" on public.hash_members;
-create policy "Admin update members" on public.hash_members for update to authenticated using ((auth.jwt()->>'email') = 'melikhova999g@gmail.com') with check ((auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin update members" on public.hash_members for update to authenticated using ((auth.jwt()->>'email') = 't2025358@gmail.com') with check ((auth.jwt()->>'email') = 't2025358@gmail.com');
 drop policy if exists "Admin delete members" on public.hash_members;
-create policy "Admin delete members" on public.hash_members for delete to authenticated using ((auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin delete members" on public.hash_members for delete to authenticated using ((auth.jwt()->>'email') = 't2025358@gmail.com');
 
 drop policy if exists "Public read news" on public.hash_news;
 create policy "Public read news" on public.hash_news for select to anon, authenticated using (true);
 drop policy if exists "Admin insert news" on public.hash_news;
-create policy "Admin insert news" on public.hash_news for insert to authenticated with check ((auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin insert news" on public.hash_news for insert to authenticated with check ((auth.jwt()->>'email') = 't2025358@gmail.com');
 drop policy if exists "Admin update news" on public.hash_news;
-create policy "Admin update news" on public.hash_news for update to authenticated using ((auth.jwt()->>'email') = 'melikhova999g@gmail.com') with check ((auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin update news" on public.hash_news for update to authenticated using ((auth.jwt()->>'email') = 't2025358@gmail.com') with check ((auth.jwt()->>'email') = 't2025358@gmail.com');
 drop policy if exists "Admin delete news" on public.hash_news;
-create policy "Admin delete news" on public.hash_news for delete to authenticated using ((auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin delete news" on public.hash_news for delete to authenticated using ((auth.jwt()->>'email') = 't2025358@gmail.com');
 
 drop policy if exists "Read vote records" on public.hash_votes;
 create policy "Read vote records" on public.hash_votes for select to anon, authenticated using (true);
@@ -71,8 +71,8 @@ on conflict (id) do update set public = true, file_size_limit = 1048576;
 drop policy if exists "Public can view HASH photos" on storage.objects;
 create policy "Public can view HASH photos" on storage.objects for select to anon, authenticated using (bucket_id = 'hash-rankings-photos');
 drop policy if exists "Admin uploads HASH photos" on storage.objects;
-create policy "Admin uploads HASH photos" on storage.objects for insert to authenticated with check (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin uploads HASH photos" on storage.objects for insert to authenticated with check (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 't2025358@gmail.com');
 drop policy if exists "Admin updates HASH photos" on storage.objects;
-create policy "Admin updates HASH photos" on storage.objects for update to authenticated using (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 'melikhova999g@gmail.com') with check (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin updates HASH photos" on storage.objects for update to authenticated using (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 't2025358@gmail.com') with check (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 't2025358@gmail.com');
 drop policy if exists "Admin deletes HASH photos" on storage.objects;
-create policy "Admin deletes HASH photos" on storage.objects for delete to authenticated using (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 'melikhova999g@gmail.com');
+create policy "Admin deletes HASH photos" on storage.objects for delete to authenticated using (bucket_id = 'hash-rankings-photos' and (auth.jwt()->>'email') = 't2025358@gmail.com');
