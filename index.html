@@ -86,6 +86,11 @@ footer{text-align:center;color:var(--muted);font-size:12px;line-height:1.6;margi
 .news-list{display:grid;gap:15px}
 .news-card{padding:0;overflow:hidden}
 .news-image{display:block;width:100%;max-height:340px;aspect-ratio:16/9;background:var(--panel2)}
+.news-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;background:var(--panel2)}
+.news-gallery img{display:block;width:100%;height:220px;object-fit:cover}
+.news-gallery img:only-child{grid-column:1/-1;height:auto;max-height:340px;aspect-ratio:16/9}
+.news-photo-preview{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+.news-photo-preview img{width:100%;height:95px;object-fit:cover;border-radius:8px;background:var(--panel2)}
 .news-content{padding:18px}
 .news-meta{color:var(--lime);font-size:10px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase}
 .news-title{font-size:22px;font-weight:950;line-height:1.2;margin:9px 0}
@@ -379,7 +384,7 @@ dialog h2{margin:0 0 18px}
   </div>
   <div class="form-field"><label for="newsBody">Story *</label><textarea id="newsBody" maxlength="5000" required placeholder="Write the story here..."></textarea></div>
   <div class="form-field"><label for="newsMember">Attach a member photo (optional)</label><select id="newsMember"><option value="">No member photo</option></select></div>
-  <div class="form-field"><label for="newsPhoto">Or upload a separate story image</label><input id="newsPhoto" type="file" accept="image/*"><div class="help">Optional image, up to 1 MB.</div><img id="newsPhotoPreview" alt="Story preview" style="display:none;width:100%;max-height:180px;object-fit:cover;border-radius:10px"></div>
+  <div class="form-field"><label for="newsPhoto">Upload story photos</label><input id="newsPhoto" type="file" accept="image/*" multiple><div class="help">Select multiple photos at once (up to 6). Images are resized automatically. Selecting new photos while editing replaces the current gallery.</div><div id="newsPhotoPreview" class="news-photo-preview"></div></div>
   <div class="form-buttons">
     <button class="btn" type="button" id="cancelNewsBtn">Cancel</button>
     <button class="btn primary" type="submit">Publish story</button>
@@ -448,6 +453,7 @@ let photoData="";
 let pendingExtraPhotos=[];
 let activeProfileId=null;
 let newsPhotoData="";
+let newsPhotosData=[];
 let editingNewsId=null;
 let clearExtraPhotos=false;
 let communityVoteConfig=readJSON(COMMUNITY_CONFIG_KEY,{botCount:100,cycleLength:7,cycleEndsAt:Date.now()+7*86400000,targets:[]});
@@ -988,9 +994,10 @@ function renderNews(){
  const list=document.getElementById("newsList");
  if(!news.length){list.innerHTML='<div class="empty">No news yet. Publish the first story.</div>';return}
  list.innerHTML=news.slice().sort((a,b)=>Number(b.created)-Number(a.created)).map(story=>{
-  const photo=storyPhoto(story);
+  const photos=(Array.isArray(story.photos)?story.photos:[]).map(safeURL).filter(Boolean);
+  if(!photos.length){const legacyPhoto=storyPhoto(story);if(legacyPhoto)photos.push(legacyPhoto)}
   return `<article class="news-card">
-   ${photo?`<img class="news-image" src="${esc(photo)}" alt="${esc(story.title)}" loading="lazy">`:""}
+   ${photos.length?`<div class="news-gallery">${photos.map(photo=>`<img src="${esc(photo)}" alt="${esc(story.title)}" loading="lazy">`).join("")}</div>`:""}
    <div class="news-content">
     <div class="news-meta">${esc(story.category||"Community")} · ${esc(dateLabel(story.created))}</div>
     <div class="muted news-expiry" data-news-expiry="${storyExpiry(story)}"></div>
@@ -1020,9 +1027,9 @@ function openNewsEditor(id=""){
  document.getElementById("newsTitle").value=story?.title||"";
  document.getElementById("newsCategory").value=story?.category||"Community";
  document.getElementById("newsBody").value=story?.body||"";
- newsPhotoData=story?.photo||"";
- const preview=document.getElementById("newsPhotoPreview");
- preview.src=safeURL(newsPhotoData);preview.style.display=newsPhotoData?"block":"none";
+ newsPhotosData=Array.isArray(story?.photos)&&story.photos.length?story.photos.slice():story?.photo?[story.photo]:[];
+ newsPhotoData=newsPhotosData[0]||"";
+ renderNewsPhotoPreview();
  refreshNewsMemberOptions(story?.memberId||"");
  newsDialog.showModal();
 }
@@ -1038,17 +1045,48 @@ document.getElementById("newsList").addEventListener("click",event=>{
   if(saveNews())renderNews();
  }
 });
-document.getElementById("newsPhoto").addEventListener("change",()=>{
- const file=document.getElementById("newsPhoto").files?.[0];if(!file)return;
- if(!file.type.startsWith("image/")||file.size>1024*1024){alert("Choose an image up to 1 MB.");return}
- const reader=new FileReader();
- reader.onload=()=>{newsPhotoData=reader.result;const p=document.getElementById("newsPhotoPreview");p.src=newsPhotoData;p.style.display="block"};
- reader.readAsDataURL(file);
+function renderNewsPhotoPreview(){
+ const preview=document.getElementById("newsPhotoPreview");
+ preview.innerHTML=newsPhotosData.map(src=>`<img src="${esc(safeURL(src))}" alt="Story photo preview">`).join("");
+}
+function compressNewsImage(file){
+ return new Promise((resolve,reject)=>{
+  if(!file.type.startsWith("image/")||file.size>5*1024*1024){reject(new Error("Each file must be an image smaller than 5 MB."));return}
+  const reader=new FileReader();
+  reader.onerror=()=>reject(new Error("Could not read one of the selected images."));
+  reader.onload=()=>{
+   const img=new Image();
+   img.onerror=()=>reject(new Error("Could not open one of the selected images."));
+   img.onload=()=>{
+    const scale=Math.min(1,1200/Math.max(img.naturalWidth,img.naturalHeight));
+    const canvas=document.createElement("canvas");
+    canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));
+    canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+    const ctx=canvas.getContext("2d");
+    if(!ctx){reject(new Error("Could not process the selected image."));return}
+    ctx.drawImage(img,0,0,canvas.width,canvas.height);
+    resolve(canvas.toDataURL("image/jpeg",0.78));
+   };
+   img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+ });
+}
+document.getElementById("newsPhoto").addEventListener("change",async event=>{
+ const files=Array.from(event.target.files||[]);
+ if(!files.length)return;
+ if(files.length>6){alert("Choose up to 6 photos per news story.");event.target.value="";return}
+ try{
+  newsPhotosData=await Promise.all(files.map(compressNewsImage));
+  newsPhotoData=newsPhotosData[0]||"";
+  renderNewsPhotoPreview();
+ }catch(error){alert(error.message||"Could not process the selected photos.");event.target.value="";}
 });
 document.getElementById("newsMember").addEventListener("change",()=>{
  const m=getMember(document.getElementById("newsMember").value);
- const p=document.getElementById("newsPhotoPreview");
- if(m&&!newsPhotoData&&safeURL(m.photo)){p.src=safeURL(m.photo);p.style.display="block"}
+ if(m&&!newsPhotosData.length&&safeURL(m.photo)){
+  newsPhotosData=[safeURL(m.photo)];newsPhotoData=newsPhotosData[0];renderNewsPhotoPreview();
+ }
 });
 document.getElementById("newsForm").addEventListener("submit",event=>{
  event.preventDefault();
@@ -1060,7 +1098,8 @@ document.getElementById("newsForm").addEventListener("submit",event=>{
   id:editingNewsId|| (crypto.randomUUID?crypto.randomUUID():String(Date.now())),
   title,body,category:document.getElementById("newsCategory").value,
   memberId:document.getElementById("newsMember").value,
-  photo:newsPhotoData,
+  photos:newsPhotosData.slice(0,6),
+  photo:newsPhotosData[0]||newsPhotoData,
   created:news.find(n=>n.id===editingNewsId)?.created||Date.now(),
   expiresAt:news.find(n=>n.id===editingNewsId)?.expiresAt||((news.find(n=>n.id===editingNewsId)?.created||Date.now())+NEWS_LIFETIME)
  };
