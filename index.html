@@ -736,10 +736,12 @@ function initialNews(){
 let news=readJSON(NEWS_KEY,null);
 if(!Array.isArray(news))news=initialNews();
 
-function addNewsStory(story){
- const item={id:crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()),...story};
- news.unshift(item);saveNews();renderNews();
-}
+const NEWS_LIFETIME=86400000;
+function storyExpiry(story){return Number(story.expiresAt)||((Number(story.created)||Date.now())+NEWS_LIFETIME)}
+function purgeExpiredNews(){const now=Date.now();const fresh=news.filter(story=>storyExpiry(story)>now);if(fresh.length===news.length)return false;news=fresh;saveNews();return true}
+function formatRemaining(ms){const s=Math.max(0,Math.floor(ms/1000));return Math.floor(s/3600)+"h "+Math.floor((s%3600)/60)+"m "+(s%60)+"s"}
+function updateNewsTimers(){document.querySelectorAll("[data-news-expiry]").forEach(el=>{el.textContent="⏳ Disappears in "+formatRemaining(Number(el.dataset.newsExpiry)-Date.now())})}
+function addNewsStory(story){const now=Date.now();const item={id:crypto.randomUUID?crypto.randomUUID():String(now+Math.random()),...story,created:story.created||now,expiresAt:story.expiresAt||now+NEWS_LIFETIME};news.unshift(item);saveNews();renderNews();}
 function storyPhoto(story){
  if(safeURL(story.photo))return safeURL(story.photo);
  const m=getMember(story.memberId);
@@ -767,6 +769,7 @@ document.getElementById("hallOfFameList").addEventListener("keydown",event=>{
 });
 
 function renderNews(){
+ if(purgeExpiredNews())return renderNews();
  const list=document.getElementById("newsList");
  if(!news.length){list.innerHTML='<div class="empty">No news yet. Publish the first story.</div>';return}
  list.innerHTML=news.slice().sort((a,b)=>Number(b.created)-Number(a.created)).map(story=>{
@@ -775,6 +778,7 @@ function renderNews(){
    ${photo?`<img class="news-image" src="${esc(photo)}" alt="${esc(story.title)}" loading="lazy">`:""}
    <div class="news-content">
     <div class="news-meta">${esc(story.category||"Community")} · ${esc(dateLabel(story.created))}</div>
+    <div class="muted news-expiry" data-news-expiry="${storyExpiry(story)}"></div>
     <div class="news-title">${esc(story.title)}</div>
     <div class="news-body">${esc(story.body)}</div>
     <div class="news-footer">
@@ -841,7 +845,9 @@ document.getElementById("newsForm").addEventListener("submit",event=>{
   id:editingNewsId|| (crypto.randomUUID?crypto.randomUUID():String(Date.now())),
   title,body,category:document.getElementById("newsCategory").value,
   memberId:document.getElementById("newsMember").value,
-  photo:newsPhotoData,created:news.find(n=>n.id===editingNewsId)?.created||Date.now()
+  photo:newsPhotoData,
+  created:news.find(n=>n.id===editingNewsId)?.created||Date.now(),
+  expiresAt:news.find(n=>n.id===editingNewsId)?.expiresAt||((news.find(n=>n.id===editingNewsId)?.created||Date.now())+NEWS_LIFETIME)
  };
  if(editingNewsId)news=news.map(n=>n.id===editingNewsId?story:n);
  else news.unshift(story);
@@ -853,6 +859,8 @@ if(localStorage.getItem(NEWS_KEY)===null)saveNews();
 
 render();
 renderNews();
+updateNewsTimers();
+setInterval(()=>{if(purgeExpiredNews())renderNews();updateNewsTimers()},1000);
 
 function applyAdminUI(){
  const ids=["addBtn","addNewsBtn","publishNewsPageBtn","editProfileBtn","addHallLegendBtn"];
