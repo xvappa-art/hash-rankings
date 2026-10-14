@@ -1015,6 +1015,7 @@ function applyAdminUI(){
  const access=document.getElementById("adminAccessBtn");
  if(access)access.textContent=isAdmin?"Admin: "+ADMIN_EMAIL+" · Sign out":"Admin login";
  render();renderNews();
+ if(!document.getElementById("communityVotePage").classList.contains("hidden"))renderCommunityVote();
 }
 async function syncMembersToCloud(){
  if(!supabaseClient||!isAdmin)return;
