@@ -264,6 +264,7 @@ dialog h2{margin:0 0 18px}
     <h1>CHAD <span style="color:var(--lime)">MAP.</span></h1>
     <div class="subtitle">Explore the cities where members are based. Locations are shown by city only, never by exact address.</div>
     <div class="stats"><div class="stat"><strong id="mapMemberCount">0</strong><small>MEMBERS WITH A CITY</small></div><div class="stat"><strong id="mapCityCount">0</strong><small>CITIES ON THE MAP</small></div></div>
+    <div class="toolbar" style="margin:14px 0"><button class="btn primary" id="addMapMemberBtn" hidden>+ Add person and city</button><span class="muted">Admin: add a person, then choose their city in the profile form.</span></div>
     <div id="israelMap" role="application" aria-label="Interactive map of member cities in Israel"></div>
     <div class="map-legend">📍 Each marker represents a city. Select a marker to see the members listed for that city.</div>
     <div id="mapCityList" class="map-city-list"></div>
@@ -700,6 +701,7 @@ const ISRAEL_CITIES={
 };
 let chadMap=null;let chadMapMarkers=null;
 function renderChadMap(){
+ const addMapBtn=document.getElementById("addMapMemberBtn");if(addMapBtn)addMapBtn.hidden=!isAdmin;
  const located=members.filter(m=>m.city&&ISRAEL_CITIES[m.city]);
  const cities=[...new Set(located.map(m=>m.city))];
  document.getElementById("mapMemberCount").textContent=located.length;
@@ -743,6 +745,7 @@ function showPage(page){
 }
 
 document.getElementById("addBtn").addEventListener("click",()=>{if(isAdmin)openAdd();else alert("Sign in with the admin account to manage profiles.")});
+document.getElementById("addMapMemberBtn").addEventListener("click",()=>{if(isAdmin)openAdd();else alert("Sign in with the admin account to manage profiles.")});
 document.getElementById("addHallLegendBtn").addEventListener("click",()=>{
  if(!isAdmin){alert("Sign in with the admin account to add retired legends.");return}
  openAdd();
