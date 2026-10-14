@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>HASH RANKINGS</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
   --bg:#10110f;--panel:#191b18;--panel2:#20231e;
@@ -117,6 +118,15 @@ dialog h2{margin:0 0 18px}
 .profile-tag:nth-child(7n+5){color:#ff9fc8;background:#3a1f2d;border-color:#87405f}
 .profile-tag:nth-child(7n+6){color:#ffe27a;background:#373019;border-color:#81702c}
 .profile-tag:nth-child(7n){color:#80e7df;background:#173331;border-color:#2b7771}
+#israelMap{height:520px;border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--panel)}
+.map-legend{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;color:var(--muted);font-size:12px}
+.map-city-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:9px;margin-top:16px}
+.map-city-card{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px;background:var(--panel);border:1px solid var(--border);border-radius:10px}
+.map-city-card strong{color:var(--lime)}
+.map-person{font-weight:750}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#191b18;color:#f4f5ef}
+.leaflet-popup-content a{color:#ff922b}
+@media(max-width:520px){#israelMap{height:420px}}
 .profile-overview{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.7;font-size:14px;color:#dedfd8}
 .tiktok-link{display:inline-block;padding:10px 13px;background:var(--panel2);border:1px solid var(--border);border-radius:9px;color:var(--lime);text-decoration:none;overflow-wrap:anywhere}
 .chart-wrap{max-width:430px;margin:auto}
@@ -188,6 +198,7 @@ dialog h2{margin:0 0 18px}
     <button class="btn active" id="leaderboardTab">🏆 Leaderboard</button>
     <button class="btn" id="newsTab">📰 News</button>
     <button class="btn" id="hallOfFameTab">🏆 Hall of Fame</button>
+    <button class="btn" id="mapTab">🗺️ Chad Map</button>
     <button class="btn" id="communityVoteTab">🗳️ Community Vote</button>
   </nav>
 
@@ -247,6 +258,17 @@ dialog h2{margin:0 0 18px}
   </section>
 
 
+  <section id="mapPage" class="hidden">
+    <div class="eyebrow">Chad Ranking Association</div>
+    <h1>CHAD <span style="color:var(--lime)">MAP.</span></h1>
+    <div class="subtitle">Explore the cities where members are based. Locations are shown by city only, never by exact address.</div>
+    <div class="stats"><div class="stat"><strong id="mapMemberCount">0</strong><small>MEMBERS WITH A CITY</small></div><div class="stat"><strong id="mapCityCount">0</strong><small>CITIES ON THE MAP</small></div></div>
+    <div id="israelMap" role="application" aria-label="Interactive map of member cities in Israel"></div>
+    <div class="map-legend">📍 Each marker represents a city. Select a marker to see the members listed for that city.</div>
+    <div id="mapCityList" class="map-city-list"></div>
+    <div id="mapEmpty" class="empty hidden">No member cities added yet. Admin can edit each profile and choose a city.</div>
+  </section>
+
   <section id="communityVotePage" class="hidden">
     <div class="eyebrow">Simulated community poll</div>
     <h1>COMMUNITY <span style="color:var(--lime)">VOTE.</span></h1>
@@ -296,6 +318,7 @@ dialog h2{margin:0 0 18px}
   <div class="form-field"><label for="memberName">Name or nickname *</label><input id="memberName" maxlength="40" required placeholder="e.g. Bass"></div>
   <div class="form-field"><label for="memberScore">Overall score (0–100) *</label><input id="memberScore" type="number" min="0" max="100" step="1" value="50" required></div>
   <div class="form-field"><label for="memberTitle">Profile title</label><input id="memberTitle" maxlength="80" placeholder="Profile title"></div>
+  <div class="form-field"><label for="memberCity">City in Israel</label><select id="memberCity"><option value="">Choose a city</option><option>Akko</option><option>Arad</option><option>Ashdod</option><option>Ashkelon</option><option>Bat Yam</option><option>Beersheba</option><option>Beit Shemesh</option><option>Bnei Brak</option><option>Caesarea</option><option>Dimona</option><option>Eilat</option><option>Givatayim</option><option>Hadera</option><option>Haifa</option><option>Herzliya</option><option>Hod Hasharon</option><option>Holon</option><option>Jerusalem</option><option>Karmiel</option><option>Kfar Saba</option><option>Kiryat Ata</option><option>Kiryat Gat</option><option>Kiryat Motzkin</option><option>Lod</option><option>Modiin</option><option>Nahariya</option><option>Nazareth</option><option>Nes Ziona</option><option>Netanya</option><option>Ofakim</option><option>Or Yehuda</option><option>Petah Tikva</option><option>Raanana</option><option>Ramat Gan</option><option>Ramla</option><option>Rehovot</option><option>Rishon LeZion</option><option>Rosh HaAyin</option><option>Safed</option><option>Sderot</option><option>Tel Aviv</option><option>Tiberias</option><option>Tirat Carmel</option><option>Yavne</option></select><div class="help">City-level location only. Leave blank if the member does not want to share.</div></div>
   <div class="form-field"><label for="memberTikTok">TikTok profile URL</label><input id="memberTikTok" type="url" placeholder="https://www.tiktok.com/@username"></div>
   <div class="form-field"><label for="memberTags">Profile tags (comma-separated)</label><input id="memberTags" maxlength="300" placeholder="achievements, community, creator"></div>
   <div class="form-field"><label for="memberOverview">Overview</label><textarea id="memberOverview" maxlength="2000" placeholder="Profile description, achievements, and details..."></textarea></div>
@@ -374,6 +397,7 @@ dialog h2{margin:0 0 18px}
 </form>
 </dialog>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL="https://wdrszqqohigeimyshess.supabase.co";
@@ -630,6 +654,7 @@ function openEdit(id){
  document.getElementById("memberName").value=m.name;
  document.getElementById("memberScore").value=m.score;
  document.getElementById("memberTitle").value=m.title||"";
+ document.getElementById("memberCity").value=m.city||"";
  document.getElementById("memberTikTok").value=m.tiktok||"";
  document.getElementById("memberTags").value=(m.tags||[]).join(", ");
  document.getElementById("memberOverview").value=m.overview||"";
@@ -646,6 +671,7 @@ function updateExtraPhotoCount(){
 }
 
 document.getElementById("leaderboardTab").addEventListener("click",()=>showPage("leaderboard"));
+document.getElementById("mapTab").addEventListener("click",()=>showPage("map"));
 document.getElementById("newsTab").addEventListener("click",()=>showPage("news"));
 document.getElementById("hallOfFameTab").addEventListener("click",()=>showPage("hall"));
 document.getElementById("communityVoteTab").addEventListener("click",()=>showPage("community"));
@@ -656,17 +682,60 @@ document.getElementById("resetCommunityVoteCycle").addEventListener("click",()=>
  saveCommunityVoteConfig();renderCommunityVote();
 });
 
+const ISRAEL_CITIES={
+"Akko":[32.927,35.081],"Arad":[31.258,35.212],"Ashdod":[31.804,34.655],"Ashkelon":[31.668,34.574],
+"Bat Yam":[32.017,34.750],"Beersheba":[31.252,34.791],"Beit Shemesh":[31.747,34.988],"Bnei Brak":[32.083,34.834],
+"Caesarea":[32.500,34.892],"Dimona":[31.069,35.033],"Eilat":[29.557,34.952],"Givatayim":[32.072,34.811],
+"Hadera":[32.434,34.919],"Haifa":[32.794,34.989],"Herzliya":[32.166,34.843],"Hod Hasharon":[32.150,34.888],
+"Holon":[32.011,34.774],"Jerusalem":[31.768,35.214],"Karmiel":[32.919,35.298],"Kfar Saba":[32.178,34.907],
+"Kiryat Ata":[32.802,35.103],"Kiryat Gat":[31.610,34.764],"Kiryat Motzkin":[32.837,35.077],"Lod":[31.951,34.895],
+"Modiin":[31.900,35.010],"Nahariya":[33.006,35.094],"Nazareth":[32.699,35.303],"Nes Ziona":[31.929,34.798],
+"Netanya":[32.321,34.853],"Ofakim":[31.314,34.620],"Or Yehuda":[32.029,34.857],"Petah Tikva":[32.085,34.887],
+"Raanana":[32.184,34.871],"Ramat Gan":[32.068,34.824],"Ramla":[31.929,34.866],"Rehovot":[31.892,34.811],
+"Rishon LeZion":[31.973,34.792],"Rosh HaAyin":[32.095,34.956],"Safed":[32.965,35.498],"Sderot":[31.525,34.596],
+"Tel Aviv":[32.085,34.782],"Tiberias":[32.792,35.531],"Tirat Carmel":[32.761,34.972],"Yavne":[31.878,34.739]
+};
+let chadMap=null;let chadMapMarkers=null;
+function renderChadMap(){
+ const located=members.filter(m=>m.city&&ISRAEL_CITIES[m.city]);
+ const cities=[...new Set(located.map(m=>m.city))];
+ document.getElementById("mapMemberCount").textContent=located.length;
+ document.getElementById("mapCityCount").textContent=cities.length;
+ document.getElementById("mapEmpty").classList.toggle("hidden",located.length>0);
+ document.getElementById("mapCityList").innerHTML=cities.slice().sort().map(city=>{
+  const people=located.filter(m=>m.city===city);
+  return '<div class="map-city-card"><div><div class="map-person">'+esc(city)+'</div><div class="muted">'+people.map(m=>esc(m.name)).join(", ")+'</div></div><strong>'+people.length+'</strong></div>';
+ }).join("");
+ if(typeof L==="undefined"){document.getElementById("israelMap").innerHTML='<div class="empty">Map library did not load. Check your internet connection and refresh.</div>';return}
+ if(!chadMap){
+  chadMap=L.map("israelMap").setView([31.5,34.9],7);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(chadMap);
+  chadMapMarkers=L.layerGroup().addTo(chadMap);
+ }else{chadMap.invalidateSize()}
+ chadMapMarkers.clearLayers();
+ cities.forEach(city=>{
+  const people=located.filter(m=>m.city===city);const coords=ISRAEL_CITIES[city];
+  const marker=L.marker(coords).addTo(chadMapMarkers);
+  marker.bindPopup('<strong>'+esc(city)+'</strong><br>'+people.length+' member(s)<hr style="border-color:#30332c">'+people.map(m=>esc(m.name)).join("<br>"));
+ });
+ if(cities.length){chadMap.fitBounds(L.latLngBounds(cities.map(city=>ISRAEL_CITIES[city])).pad(0.15),{maxZoom:8})}else{chadMap.setView([31.5,34.9],7)}
+ setTimeout(()=>chadMap.invalidateSize(),100);
+}
+
 function showPage(page){
- const isNews=page==="news";const isHall=page==="hall";const isCommunity=page==="community";
- document.getElementById("leaderboardPage").classList.toggle("hidden",isNews||isHall||isCommunity);
+ const isNews=page==="news";const isHall=page==="hall";const isCommunity=page==="community";const isMap=page==="map";
+ document.getElementById("leaderboardPage").classList.toggle("hidden",isNews||isHall||isCommunity||isMap);
+ document.getElementById("mapPage").classList.toggle("hidden",!isMap);
  document.getElementById("newsPage").classList.toggle("hidden",!isNews);
  document.getElementById("hallOfFamePage").classList.toggle("hidden",!isHall);
  document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall&&!isCommunity);
  document.getElementById("newsTab").classList.toggle("active",isNews);
  document.getElementById("hallOfFameTab").classList.toggle("active",isHall);
  document.getElementById("communityVotePage").classList.toggle("hidden",!isCommunity);
+ document.getElementById("mapTab").classList.toggle("active",isMap);
  document.getElementById("communityVoteTab").classList.toggle("active",isCommunity);
  if(isCommunity)renderCommunityVote();
+ if(isMap)renderChadMap();
  if(isNews)renderNews();if(isHall)renderHallOfFame();
 }
 
@@ -758,6 +827,7 @@ form.addEventListener("submit",event=>{
  const name=document.getElementById("memberName").value.trim();
  const score=Number(document.getElementById("memberScore").value);
  const title=document.getElementById("memberTitle").value.trim();
+ const city=document.getElementById("memberCity").value;
  const rawTikTok=document.getElementById("memberTikTok").value.trim();
  const overview=document.getElementById("memberOverview").value.trim();
  const note=document.getElementById("memberNote").value.trim();
@@ -772,7 +842,7 @@ form.addEventListener("submit",event=>{
  const existing=getMember(id);
  const member={
   id:existing?existing.id:(crypto.randomUUID?crypto.randomUUID():String(Date.now())),
-  name,score,title,tiktok:rawTikTok?safeURL(rawTikTok):"",tags,overview,note,
+  name,score,title,city,tiktok:rawTikTok?safeURL(rawTikTok):"",tags,overview,note,
   photo:photoData,extraPhotos:[...pendingExtraPhotos],influence,
   hallOfFame:document.getElementById("memberHallOfFame").checked,
   peakScore:existing?Math.max(Number(existing.peakScore??existing.score),score):score,
