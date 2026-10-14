@@ -650,14 +650,13 @@ document.getElementById("resetCommunityVoteCycle").addEventListener("click",()=>
 });
 
 function showPage(page){
- const isNews=page==="news";const isHall=page==="hall";
- document.getElementById("leaderboardPage").classList.toggle("hidden",isNews||isHall);
+ const isNews=page==="news";const isHall=page==="hall";const isCommunity=page==="community";
+ document.getElementById("leaderboardPage").classList.toggle("hidden",isNews||isHall||isCommunity);
  document.getElementById("newsPage").classList.toggle("hidden",!isNews);
  document.getElementById("hallOfFamePage").classList.toggle("hidden",!isHall);
- document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall);
+ document.getElementById("leaderboardTab").classList.toggle("active",!isNews&&!isHall&&!isCommunity);
  document.getElementById("newsTab").classList.toggle("active",isNews);
  document.getElementById("hallOfFameTab").classList.toggle("active",isHall);
- const isCommunity=page==="community";
  document.getElementById("communityVotePage").classList.toggle("hidden",!isCommunity);
  document.getElementById("communityVoteTab").classList.toggle("active",isCommunity);
  if(isCommunity)renderCommunityVote();
