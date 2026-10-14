@@ -156,7 +156,7 @@ dialog h2{margin:0 0 18px}
 .community-panel{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;margin:18px 0}
 .community-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .community-targets{display:grid;gap:8px;margin:14px 0}
-.community-target{display:grid;grid-template-columns:auto minmax(0,1fr) minmax(145px,190px);align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px}
+.community-target{display:grid;grid-template-columns:auto 42px minmax(0,1fr) minmax(145px,190px);align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px}.community-target-photo{width:42px;height:42px;border-radius:10px;overflow:hidden;background:var(--panel);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--lime);flex-shrink:0}.community-target-photo img{width:100%;height:100%;object-fit:cover}
 .community-target input[type=checkbox]{width:auto;accent-color:var(--lime)}
 .community-target-name{font-weight:800;overflow-wrap:anywhere}
 .community-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -166,7 +166,7 @@ dialog h2{margin:0 0 18px}
 .community-result-rank{color:var(--lime);font-weight:900;width:24px}
 .community-result-count{margin-left:auto;font-weight:900;white-space:nowrap}
 .community-chip{display:inline-block;border:1px solid var(--border);border-radius:999px;padding:4px 8px;color:var(--muted);font-size:11px;margin:4px 4px 0 0}
-@media(max-width:600px){.community-grid,.community-results{grid-template-columns:1fr}.community-target{grid-template-columns:auto minmax(0,1fr)}.community-target select{grid-column:2;max-width:100%}}
+@media(max-width:600px){.community-grid,.community-results{grid-template-columns:1fr}.community-target{grid-template-columns:auto 38px minmax(0,1fr)}.community-target-photo{width:38px;height:38px}.community-target>div:last-child{grid-column:3;max-width:100%}.community-target select{max-width:100%}}
 </style>
 </head>
 <body>
@@ -853,7 +853,7 @@ function renderCommunityVote(){
  const active=members.filter(m=>!m.hallOfFame).slice().sort((a,b)=>a.name.localeCompare(b.name));
  list.innerHTML=active.length?active.map(m=>{
   const v=selected[m.id]||{rising:false,overrated:false};
-  return '<div class="community-target"><input type="checkbox" class="community-target-enabled" data-community-id="'+esc(m.id)+'" aria-label="Select '+esc(m.name)+'" '+((v.rising||v.overrated)?'checked':'')+(isAdmin?'':' disabled')+'><div class="community-target-name">'+esc(m.name)+'<div class="muted">Score '+esc(m.score)+'</div></div><div><label class="muted" for="community-kind-'+esc(m.id)+'">Vote category</label><select id="community-kind-'+esc(m.id)+'" class="community-target-kind" data-community-kind="'+esc(m.id)+'" '+(isAdmin?'':'disabled')+'><option value="both" '+(v.rising&&v.overrated?'selected':'')+'>Both categories</option><option value="rising" '+(v.rising&&!v.overrated?'selected':'')+'>Top Rising</option><option value="overrated" '+(v.overrated&&!v.rising?'selected':'')+'>Most Overrated</option></select></div></div>';
+  return '<div class="community-target"><input type="checkbox" class="community-target-enabled" data-community-id="'+esc(m.id)+'" aria-label="Select '+esc(m.name)+'" '+((v.rising||v.overrated)?'checked':'')+(isAdmin?'':' disabled')+'><div class="community-target-photo">'+avatarContent(m)+'</div><div class="community-target-name">'+esc(m.name)+'<div class="muted">Score '+esc(m.score)+'</div></div><div><label class="muted" for="community-kind-'+esc(m.id)+'">Vote category</label><select id="community-kind-'+esc(m.id)+'" class="community-target-kind" data-community-kind="'+esc(m.id)+'" '+(isAdmin?'':'disabled')+'><option value="both" '+(v.rising&&v.overrated?'selected':'')+'>Both categories</option><option value="rising" '+(v.rising&&!v.overrated?'selected':'')+'>Top Rising</option><option value="overrated" '+(v.overrated&&!v.rising?'selected':'')+'>Most Overrated</option></select></div></div>';
  }).join(""):'<div class="empty">Add some profiles first to include them in the poll.</div>';
  const rising=communityVoteResults("rising");
  const overrated=communityVoteResults("overrated");
