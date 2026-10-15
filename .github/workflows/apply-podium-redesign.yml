@@ -1,0 +1,97 @@
+name: Apply podium redesign
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'Apply podium redesign to index.html'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Patch podium only
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          css = r'''
+/* Reference-style podium redesign */
+.podium-section{margin:34px 0 28px;text-align:center}
+.podium-section>.section-heading{display:none}
+.podium{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.18fr) minmax(0,1fr);gap:16px;align-items:end;padding:34px 0 4px}
+.podium::before{content:"";position:absolute;left:50%;top:0;width:86px;height:2px;transform:translateX(-50%);background:var(--lime);opacity:.65}
+.podium-intro{grid-column:1/-1;margin:0 0 20px;display:grid;justify-items:center;gap:7px}
+.podium-intro-eyebrow{color:var(--lime);font-size:11px;letter-spacing:3px;font-weight:900;text-transform:uppercase}
+.podium-intro-title{font-size:clamp(30px,5vw,48px);font-weight:500;line-height:1.05;letter-spacing:-1.5px}
+.podium-intro-copy{max-width:680px;color:var(--muted);line-height:1.55;font-size:13px}
+.podium-card{position:relative;display:flex;flex-direction:column;justify-content:flex-start;min-width:0;padding:15px 12px 18px;background:linear-gradient(180deg,#151613,#10110f);border:1px solid #4a4b46;border-radius:17px;box-shadow:0 10px 28px #0007;text-align:left;overflow:hidden}
+.podium-card::after{content:"";position:absolute;inset:auto 8px 8px;height:2px;background:linear-gradient(90deg,transparent,var(--lime),transparent);opacity:.28}
+.podium-card.place-1{order:2;min-height:420px;border-color:var(--lime);padding:15px 13px 20px;transform:translateY(-22px);box-shadow:0 16px 38px #0009,0 0 0 1px #ff922b22}
+.podium-card.place-2{order:1;min-height:365px;transform:translateY(18px)}
+.podium-card.place-3{order:3;min-height:365px;transform:translateY(18px);border-color:#8b5c32}
+.podium-card .podium-place{display:flex;align-items:center;justify-content:space-between;gap:8px;color:#d8b47a;font-size:11px;letter-spacing:1.6px;font-weight:900;text-transform:uppercase;margin:0 0 11px;padding:0 2px}
+.podium-card.place-1 .podium-place{color:var(--lime)}
+.podium-movement{margin-left:auto;padding:8px 10px;border-radius:8px;font-size:14px;letter-spacing:.5px;font-weight:950;white-space:nowrap;background:#123820;color:#3fe277}
+.podium-movement.down{background:#3a1717;color:#ff6d6d}
+.podium-avatar{width:100%;height:245px;border-radius:12px;margin:0;background:#25271f;border:4px solid #332f26;display:grid;place-items:center;overflow:hidden;font-size:34px}
+.podium-card.place-1 .podium-avatar{height:285px;border-color:#51452e}
+.podium-avatar img{width:100%;height:100%;object-fit:cover}
+.podium-card.place-2 .podium-avatar,.podium-card.place-3 .podium-avatar{height:225px}
+.podium-meta{display:flex;align-items:end;justify-content:space-between;gap:10px;margin-top:13px}
+.podium-name{font-size:18px;font-weight:900;line-height:1.1;margin:0;color:var(--text)}
+.podium-card.place-1 .podium-name{font-size:22px}
+.podium-score{font-size:13px;color:var(--lime);font-weight:950;white-space:nowrap}
+.podium-rank{margin-top:5px;color:var(--muted);font-size:11px;font-weight:700}
+@media(max-width:700px){
+  .podium{grid-template-columns:1fr 1.08fr 1fr;gap:7px;padding-top:25px}
+  .podium-intro{margin-bottom:10px}
+  .podium-intro-title{font-size:28px}
+  .podium-intro-copy{font-size:11px;padding:0 8px}
+  .podium-card{padding:10px 7px 13px;border-radius:13px}
+  .podium-card.place-1{min-height:320px;transform:translateY(-12px);padding:10px 8px 14px}
+  .podium-card.place-2,.podium-card.place-3{min-height:285px;transform:translateY(10px)}
+  .podium-card .podium-place{font-size:8px;letter-spacing:.9px;margin-bottom:7px}
+  .podium-movement{padding:5px 6px;font-size:10px}
+  .podium-avatar{height:170px;border-width:3px;border-radius:9px}
+  .podium-card.place-1 .podium-avatar{height:205px}
+  .podium-card.place-2 .podium-avatar,.podium-card.place-3 .podium-avatar{height:155px}
+  .podium-meta{display:block;margin-top:8px}
+  .podium-name{font-size:12px}
+  .podium-card.place-1 .podium-name{font-size:14px}
+  .podium-score{font-size:10px;margin-top:4px}
+  .podium-rank{font-size:9px}
+}
+'''
+          marker='</style>'
+          if '/* Reference-style podium redesign */' not in s:
+              s=s.replace(marker,css+'\n'+marker,1)
+          start=s.index('function renderPodium(){')
+          end=s.index('\nfunction renderMovements(){',start)
+          new_func=r'''function renderPodium(){
+ const top=sortedMembers().slice(0,3);
+ const medals=["🥇","🥈","🥉"];
+ const labels=["TRUE ADAM","RUNNER UP","THIRD"];
+ const cards=top.map((m,i)=>{
+  const change=m.previousScore==null?0:Number(m.score)-Number(m.previousScore);
+  const movement=change===0?'':`<span class="podium-movement ${change<0?'down':''}">${change>0?'↑ +'+change:'↓ '+change}</span>`;
+  return `<div class="podium-card place-${i+1}">
+   <div class="podium-place"><span>${medals[i]} ${labels[i]}</span>${movement}</div>
+   <div class="podium-avatar">${avatarContent(m)}</div>
+   <div class="podium-meta"><div><div class="podium-name">${esc(m.name)}</div><div class="podium-rank">#${i+1} · ${Number(m.score)} points</div></div><div class="podium-score">${Number(m.score)} pts</div></div>
+  </div>`;
+ }).join('');
+ document.getElementById("podium").innerHTML=top.length?`<div class="podium-intro"><div class="podium-intro-eyebrow">♛ THIS CYCLE</div><div class="podium-intro-title">The Podium</div><div class="podium-intro-copy">The three highest placements of the published cycle, with their score and recent trajectory.</div></div>${cards}`:'<div class="feature-empty">Add members to fill the podium.</div>';
+}
+'''
+          s=s[:start]+new_func+s[end:]
+          p.write_text(s,encoding='utf-8')
+      - name: Commit and remove patch workflow
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git rm .github/workflows/apply-podium-redesign.yml
+          git add index.html
+          git commit -m 'Apply podium redesign to index.html'
+          git push
