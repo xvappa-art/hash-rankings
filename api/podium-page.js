@@ -35,34 +35,65 @@ export default async function handler(req, res) {
 
   html = html.replace('</head>', css + '\n</head>');
 
-  const script = `<script id="hash-podium-redesign-script">
+  const oldFn = `function renderPodium(){
+           const top=sortedMembers().slice(0,3);
+           document.getElementById("podium").innerHTML=top.length?top.map((m,i)=>`
+            <div class="podium-card place-${i+1}">
+             <div class="podium-place">${["🥇 1ST PLACE","🥈 2ND PLACE","🥉 3RD PLACE"][i]}</div>
+             <div class="podium-avatar">${avatarContent(m)}</div>
+             <div class="podium-name">${esc(m.name)}</div>
+             <div class="podium-score">${Number(m.score)} pts</div>
+            </div>`).join(""):'<div class="feature-empty">Add members to fill the podium.</div>';
+          }`;
+
+  const newFn = `function renderPodium(){
+           const top=sortedMembers().slice(0,3);
+           const labels=["#1 · WINNER","#2 · RUNNER-UP","#3 · THIRD PLACE"];
+           document.getElementById("podium").innerHTML=top.length?top.map((m,i)=>{
+            const hasPrevious=m.previousScore!=null&&Number.isFinite(Number(m.previousScore));
+            const change=hasPrevious?Number(m.score)-Number(m.previousScore):0;
+            const movement=!hasPrevious?"NEW":change>0?`▲ +${change}`:change<0?`▼ ${change}`:"—";
+            const movementClass=!hasPrevious?"neutral":change>0?"":"down";
+            return `<div class="podium-card place-${i+1}">
+             <div class="podium-movement ${movementClass}">${movement}</div>
+             <div class="podium-place">${labels[i]}</div>
+             <div class="podium-avatar">${avatarContent(m)}</div>
+             <div class="podium-name">${esc(m.name)}</div>
+             <div class="podium-score">${Number(m.score)} POINTS</div>
+            </div>`;
+           }).join(""):'<div class="feature-empty">Add members to fill the podium.</div>';
+          }`;
+
+  if (html.includes(oldFn)) html = html.replace(oldFn, newFn);
+
+  const fallbackScript = `<script id="hash-podium-redesign-fallback">
 (function(){
-  const originalAvatarContent=window.avatarContent;
-  window.renderPodium=function(){
-    const top=window.sortedMembers().slice(0,3);
-    const labels=["#1 · WINNER","#2 · RUNNER-UP","#3 · THIRD PLACE"];
-    const cards=top.map((m,i)=>{
-      const hasPrevious=m.previousScore!=null&&Number.isFinite(Number(m.previousScore));
-      const change=hasPrevious?Number(m.score)-Number(m.previousScore):0;
-      const movement=!hasPrevious?"NEW":change>0?`▲ +${change}`:change<0?`▼ ${change}`:"—";
-      const movementClass=!hasPrevious?"neutral":change>0?"":"down";
-      return `<div class="podium-card place-${i+1}">
-        <div class="podium-movement ${movementClass}">${movement}</div>
-        <div class="podium-place">${labels[i]}</div>
-        <div class="podium-avatar">${originalAvatarContent(m)}</div>
-        <div class="podium-name">${window.esc(m.name)}</div>
-        <div class="podium-score">${Number(m.score)} POINTS</div>
-      </div>`;
-    }).join("");
-    const el=document.getElementById("podium");
-    if(el)el.innerHTML=cards||'<div class="feature-empty">Add members to fill the podium.</div>';
-  };
-  window.renderPodium();
+  function enhance(){
+    const section=document.querySelector('.podium-section');
+    const podium=document.getElementById('podium');
+    if(!section||!podium||!podium.children.length)return;
+    if(!section.querySelector('.podium-kicker')){
+      const heading=section.querySelector('.section-heading');
+      if(heading){heading.className='podium-kicker';heading.textContent='♛ THIS CYCLE';}
+    }
+    if(!section.querySelector('.podium-heading')){
+      const h=document.createElement('h2');h.className='podium-heading';h.textContent='The Podium';section.insertBefore(h,podium);
+    }
+    [...podium.children].slice(0,3).forEach((card,i)=>{
+      if(card.querySelector('.podium-movement'))return;
+      card.classList.add(`place-${i+1}`);
+      const badge=document.createElement('div');badge.className='podium-movement neutral';badge.textContent='THIS CYCLE';card.appendChild(badge);
+    });
+  }
+  const observer=new MutationObserver(enhance);
+  observer.observe(document.documentElement,{childList:true,subtree:true});
+  enhance();
 })();
 </script>`;
-  html = html.replace('</body>', script + '\n</body>');
+
+  html = html.replace('</body>', fallbackScript + '\n</body>');
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('Cache-Control', 'no-store');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.status(200).send(html);
 }
