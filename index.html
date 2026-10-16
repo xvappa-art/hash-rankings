@@ -61,6 +61,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--lime)}
 .movement-name{font-weight:800;font-size:13px;overflow-wrap:anywhere}
 .movement-detail{color:var(--muted);font-size:11px;margin-top:3px}
 .movement-change{font-weight:900;font-size:13px}
+.movement-timer{font-size:10px;font-weight:750;color:var(--muted);margin:-5px 0 12px;letter-spacing:.3px}
 .up{color:var(--lime)}.down{color:var(--red)}
 .board{border:1px solid var(--border);border-radius:14px;overflow:hidden}
 .board-head,.member{display:grid;grid-template-columns:45px minmax(0,1fr) 65px 105px;gap:9px;align-items:center;padding:13px}
@@ -233,10 +234,12 @@ dialog h2{margin:0 0 18px}
     <section class="feature-grid">
       <div class="feature-card">
         <div class="feature-title">📈 Biggest Risers</div>
+        <div class="movement-timer" id="risersTimer">Refreshes in 24:00:00</div>
         <div id="risers" class="movement-list"></div>
       </div>
       <div class="feature-card">
         <div class="feature-title">📉 Biggest Drops</div>
+        <div class="movement-timer" id="dropsTimer">Refreshes in 24:00:00</div>
         <div id="drops" class="movement-list"></div>
       </div>
     </section>
@@ -568,9 +571,29 @@ function renderPodium(){
   </div>`).join(""):'<div class="feature-empty">Add members to fill the podium.</div>';
 }
 
+const MOVEMENT_CYCLE_MS=24*60*60*1000;
+function movementCycleRemaining(now=Date.now()){
+ const elapsed=now%MOVEMENT_CYCLE_MS;
+ return MOVEMENT_CYCLE_MS-elapsed;
+}
+function formatMovementTimer(ms){
+ const seconds=Math.max(0,Math.floor(ms/1000));
+ const hours=String(Math.floor(seconds/3600)).padStart(2,"0");
+ const minutes=String(Math.floor((seconds%3600)/60)).padStart(2,"0");
+ const secs=String(seconds%60).padStart(2,"0");
+ return hours+":"+minutes+":"+secs;
+}
+function renderMovementTimers(){
+ const remaining=movementCycleRemaining();
+ const label="New movement update in "+formatMovementTimer(remaining);
+ const rises=document.getElementById("risersTimer"),drops=document.getElementById("dropsTimer");
+ if(rises)rises.textContent=label;
+ if(drops)drops.textContent=label;
+}
 function renderMovements(){
- const changed=members.filter(m=>!m.hallOfFame).map(m=>({member:m,change:m.previousScore==null?0:Number(m.score)-Number(m.previousScore)}))
-  .filter(x=>x.change!==0&&Number.isFinite(x.change));
+ const now=Date.now();
+ const changed=members.filter(m=>!m.hallOfFame).map(m=>({member:m,change:m.previousScore==null?0:Number(m.score)-Number(m.previousScore),changedAt:Number(m.previousScoreAt||0)}))
+  .filter(x=>x.change!==0&&Number.isFinite(x.change)&&x.changedAt>0&&now-x.changedAt<MOVEMENT_CYCLE_MS);
  function row(m,change){
   return `<div class="movement-item"><div class="movement-avatar">${avatarContent(m)}</div>
    <div class="movement-info"><div class="movement-name">${esc(m.name)}</div>
@@ -579,8 +602,9 @@ function renderMovements(){
  }
  const rises=changed.filter(x=>x.change>0).sort((a,b)=>b.change-a.change).slice(0,3);
  const drops=changed.filter(x=>x.change<0).sort((a,b)=>a.change-b.change).slice(0,3);
- document.getElementById("risers").innerHTML=rises.length?rises.map(x=>row(x.member,x.change)).join(""):'<div class="feature-empty">No rises recorded yet.</div>';
- document.getElementById("drops").innerHTML=drops.length?drops.map(x=>row(x.member,x.change)).join(""):'<div class="feature-empty">No drops recorded yet.</div>';
+ document.getElementById("risers").innerHTML=rises.length?rises.map(x=>row(x.member,x.change)).join(""):'<div class="feature-empty">No rises in the current 24-hour cycle.</div>';
+ document.getElementById("drops").innerHTML=drops.length?drops.map(x=>row(x.member,x.change)).join(""):'<div class="feature-empty">No drops in the current 24-hour cycle.</div>';
+ renderMovementTimers();
 }
 
 function render(){
@@ -879,7 +903,8 @@ form.addEventListener("submit",event=>{
   hallOfFame:document.getElementById("memberHallOfFame").checked,
   peakScore:existing?Math.max(Number(existing.peakScore??existing.score),score):score,
   created:existing?existing.created:Date.now(),
-  previousScore:existing?(Number(score)!==Number(existing.score)?Number(existing.score):existing.previousScore):undefined
+  previousScore:existing?(Number(score)!==Number(existing.score)?Number(existing.score):existing.previousScore):undefined,
+   previousScoreAt:existing?(Number(score)!==Number(existing.score)?Date.now():existing.previousScoreAt):undefined
  };
  if(existing)members=members.map(m=>m.id===id?member:m);else members.push(member);
  if(saveMembers()){
