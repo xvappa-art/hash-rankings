@@ -925,14 +925,27 @@ function renderHallOfFame(){
  if(!legends.length){list.innerHTML='<div class="empty" style="grid-column:1/-1">No legends yet. Sign in as admin, edit a member, and mark them as a Hall of Fame legend.</div>';return}
  list.innerHTML=legends.map(m=>{
   const description=esc(m.hallOfFameNote||m.overview||m.note||"A HASH RANKINGS legend. Forever remembered.");
-  const adminActions=isAdmin?'<div class="hall-actions"><button class="btn" data-hall-edit="' + esc(m.id) + '" type="button">Edit legend</button></div>':"";
+  const adminActions=isAdmin?'<div class="hall-actions"><button class="btn" data-hall-edit="' + esc(m.id) + '" type="button">Edit legend</button><button class="btn danger" data-hall-delete="' + esc(m.id) + '" type="button">Delete legend</button></div>':"";
   return '<article class="hall-card" data-profile="' + esc(m.id) + '" tabindex="0" role="button" aria-label="Open ' + esc(m.name) + ' profile">' +
    '<div class="hall-card-top"><div class="avatar">' + avatarContent(m) + '</div><div class="hall-card-info"><div class="hall-badge">★ HALL OF FAME</div><div class="hall-name">' + esc(m.name) + '</div><div class="hall-score">Peak score: ' + Number(m.peakScore??m.score) + ' / 100</div></div></div>' +
    '<div class="hall-description">' + description + '</div>' + adminActions + '</article>';
  }).join("");
 }
 document.getElementById("hallOfFameList").addEventListener("click",event=>{
- const edit=event.target.closest("[data-hall-edit]");if(edit){event.stopPropagation();openEdit(edit.dataset.hallEdit);return}
+ const edit=event.target.closest("[data-hall-edit]");
+ if(edit){event.stopPropagation();if(!isAdmin){alert("Sign in with the admin account to edit retired legends.");return}openEdit(edit.dataset.hallEdit);return}
+ const del=event.target.closest("[data-hall-delete]");
+ if(del){
+  event.stopPropagation();
+  if(!isAdmin){alert("Sign in with the admin account to delete retired legends.");return}
+  const legend=getMember(del.dataset.hallDelete);
+  if(!legend)return;
+  if(!confirm("Permanently delete "+legend.name+" from Hash Rankings? This removes them from the Hall of Fame and leaderboard."))return;
+  members=members.filter(m=>String(m.id)!==String(legend.id));
+  if(activeProfileId===legend.id){activeProfileId=null;if(profileDialog.open)profileDialog.close()}
+  saveMembers();render();renderHallOfFame();refreshNewsMemberOptions();
+  return;
+ }
  const profile=event.target.closest("[data-profile]");if(profile)openProfile(profile.dataset.profile);
 });
 document.getElementById("hallOfFameList").addEventListener("keydown",event=>{
