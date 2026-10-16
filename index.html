@@ -492,15 +492,22 @@ let communityCycleTimer=null;
 let votes=readJSON(VOTES_KEY,{});
 if(!votes||typeof votes!=="object"||Array.isArray(votes))votes={};
 
+function isInlineImage(value){return typeof value==="string"&&/^data:image\//i.test(value)}
+function persistLocalMembers(){
+ const compact=members.map(m=>({...m,photo:isInlineImage(m.photo)?"":m.photo,extraPhotos:(Array.isArray(m.extraPhotos)?m.extraPhotos:[]).filter(p=>!isInlineImage(p))}));
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(compact));return true}catch{return false}
+}
+function persistLocalNews(){
+ const compact=news.map(n=>({...n,photo:isInlineImage(n.photo)?"":n.photo,photos:(Array.isArray(n.photos)?n.photos:[]).filter(p=>!isInlineImage(p))}));
+ try{localStorage.setItem(NEWS_KEY,JSON.stringify(compact));return true}catch{return false}
+}
 function saveMembers(){
- try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}
- catch{alert("Browser storage is full. Try fewer or smaller photos.");return false}
+ persistLocalMembers();
  if(isAdmin&&supabaseClient)syncMembersToCloud();
  return true;
 }
 function saveNews(){
- try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}
- catch{alert("Browser storage is full. Try removing some pictures.");return false}
+ persistLocalNews();
  if(isAdmin&&supabaseClient)syncNewsToCloud();
  return true;
 }
@@ -809,7 +816,7 @@ async function castVote(id){
  if(!data){votes[id]=true;saveVotes();render();alert("You have already voted for this member, or they have reached 100 points.");return}
  votes[id]=true;saveVotes();
  const {data:rows,error:loadError}=await supabaseClient.from("hash_members").select("id,data");
- if(!loadError&&rows){members=rows.map(row=>row.data);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}catch{}}
+ if(!loadError&&rows){members=rows.map(row=>row.data);persistLocalMembers()}
  cloudReady=true;render();renderNews();
 }
 
@@ -1188,9 +1195,51 @@ function applyAdminUI(){
  render();renderNews();renderComments();
  if(!document.getElementById("communityVotePage").classList.contains("hidden"))renderCommunityVote();
 }
+async function uploadImageToStorage(value,folder,entityId,index=0){
+ if(!isInlineImage(value))return value||"";
+ if(!supabaseClient||!isAdmin)throw new Error("Sign in with the admin account before uploading ranking photos.");
+ const response=await fetch(value);
+ const blob=await response.blob();
+ const mime=(blob.type||"image/jpeg").toLowerCase();
+ const ext=mime.includes("png")?"png":mime.includes("webp")?"webp":mime.includes("gif")?"gif":mime.includes("avif")?"avif":"jpg";
+ const safeId=String(entityId||"item").replace(/[^a-z0-9_-]/gi,"_");
+ const path=folder+"/"+safeId+"/"+Date.now()+"-"+index+"."+ext;
+ const {error}=await supabaseClient.storage.from("hash-rankings-photos").upload(path,blob,{contentType:mime,upsert:false,cacheControl:"3600"});
+ if(error)throw error;
+ const {data}=supabaseClient.storage.from("hash-rankings-photos").getPublicUrl(path);
+ if(!data?.publicUrl)throw new Error("The uploaded image URL could not be created.");
+ return data.publicUrl;
+}
+async function moveMemberImagesToStorage(){
+ const updated=[];
+ for(const member of members){
+  const next={...member};
+  next.photo=await uploadImageToStorage(next.photo,"members",next.id,0);
+  const extras=Array.isArray(next.extraPhotos)?next.extraPhotos:[];
+  next.extraPhotos=[];
+  for(let i=0;i<extras.length;i++)next.extraPhotos.push(await uploadImageToStorage(extras[i],"members",next.id,i+1));
+  updated.push(next);
+ }
+ members=updated;
+ persistLocalMembers();
+}
+async function moveNewsImagesToStorage(){
+ const updated=[];
+ for(const story of news){
+  const next={...story};
+  const photos=Array.isArray(next.photos)&&next.photos.length?next.photos:(next.photo?[next.photo]:[]);
+  next.photos=[];
+  for(let i=0;i<photos.length;i++)next.photos.push(await uploadImageToStorage(photos[i],"news",next.id,i+1));
+  next.photo=next.photos[0]||"";
+  updated.push(next);
+ }
+ news=updated;
+ persistLocalNews();
+}
 async function syncMembersToCloud(){
  if(!supabaseClient||!isAdmin)return;
  try{
+  await moveMemberImagesToStorage();
   const payload=members.map(m=>({id:String(m.id),data:m}));
   if(payload.length){const {error}=await supabaseClient.from("hash_members").upsert(payload,{onConflict:"id"});if(error)throw error}
   const {data:existing,error:readError}=await supabaseClient.from("hash_members").select("id");
@@ -1204,6 +1253,7 @@ async function syncMembersToCloud(){
 async function syncNewsToCloud(){
  if(!supabaseClient||!isAdmin)return;
  try{
+  await moveNewsImagesToStorage();
   const payload=news.map(n=>({id:String(n.id),data:n}));
   payload.push({id:COMMUNITY_CONFIG_ID,data:{type:"community-vote-config",...communityVoteConfig}});
   if(payload.length){const {error}=await supabaseClient.from("hash_news").upsert(payload,{onConflict:"id"});if(error)throw error}
@@ -1223,7 +1273,7 @@ async function loadCloudData(){
    supabaseClient.from("hash_news").select("id,data")
   ]);
   if(memberError)throw memberError;if(newsError)throw newsError;
-  if(memberRows&&memberRows.length){members=memberRows.map(row=>row.data);try{localStorage.setItem(STORAGE_KEY,JSON.stringify(members))}catch{}}
+  if(memberRows&&memberRows.length){members=memberRows.map(row=>row.data);persistLocalMembers();if(isAdmin&&members.some(m=>isInlineImage(m.photo)||(m.extraPhotos||[]).some(isInlineImage)))await syncMembersToCloud()}
   else if(isAdmin){await syncMembersToCloud()}
   if(newsRows&&newsRows.length){
    const configRow=newsRows.find(row=>String(row.id)===COMMUNITY_CONFIG_ID);
@@ -1233,7 +1283,8 @@ async function loadCloudData(){
     try{localStorage.setItem(COMMUNITY_CONFIG_KEY,JSON.stringify(communityVoteConfig))}catch{}
    }
    news=newsRows.filter(row=>String(row.id)!==COMMUNITY_CONFIG_ID).map(row=>row.data);
-   try{localStorage.setItem(NEWS_KEY,JSON.stringify(news))}catch{}
+   persistLocalNews();
+   if(isAdmin&&news.some(n=>isInlineImage(n.photo)||(n.photos||[]).some(isInlineImage)))await syncNewsToCloud();
   }
   else if(isAdmin){await syncNewsToCloud()}
   /* Use Supabase vote records for this browser, not any old device-only votes. */
