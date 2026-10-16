@@ -3,95 +3,96 @@ export default async function handler(req, res) {
   const source = await fetch(`https://${host}/index.html`);
   let html = await source.text();
 
-  const oldPodium = `    <section class="podium-section">\n      <div class="section-heading">🏆 TOP 3 PODIUM</div>\n      <div id="podium" class="podium"></div>\n    </section>`;
-
-  const newPodium = `    <section class="podium-section">\n      <div class="podium-kicker">♛ THIS CYCLE</div>\n      <h2 class="podium-heading">The Podium</h2>\n      <p class="podium-subtitle">The three highest-ranked members this cycle. Scores and profile photos stay synced with the existing HASH RANKINGS data.</p>\n      <div id="podium" class="podium"></div>\n    </section>`;
-
-  if (html.includes(oldPodium)) html = html.replace(oldPodium, newPodium);
-
-  const css = `<style id="hash-podium-redesign">
-.podium-section,.feature-grid{margin:30px 0}
-.podium-section{position:relative;padding:8px 0 4px}
-.podium-section .podium-kicker{color:var(--lime);font-size:10px;letter-spacing:3px;font-weight:950;text-transform:uppercase;margin-bottom:8px}
-.podium-section .podium-heading{font-size:clamp(30px,5vw,46px);font-weight:950;letter-spacing:-1.8px;line-height:1;margin:0 0 8px}
-.podium-section .podium-subtitle{color:var(--muted);font-size:13px;line-height:1.55;margin:0 0 22px;max-width:650px}
-.podium{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.16fr) minmax(0,1fr);gap:14px;align-items:end;padding:8px 0 0}
-.podium-card{position:relative;text-align:left;overflow:hidden;overflow-wrap:anywhere;background:linear-gradient(180deg,#20221e 0%,#151714 100%);border:1px solid #373a32;border-radius:18px;padding:18px;min-height:245px;box-shadow:0 14px 34px #0007}
-.podium-card.place-1{order:2;border:1px solid #ff922b;min-height:315px;padding:22px;transform:translateY(-22px);box-shadow:0 20px 48px #000a,0 0 0 1px #ff922b22}
-.podium-card.place-2{order:1}.podium-card.place-3{order:3}
-.podium-place{font-size:10px;font-weight:950;color:#aaa99f;letter-spacing:1.8px;text-transform:uppercase;margin-bottom:13px}
-.podium-card.place-1 .podium-place{color:var(--lime)}
-.podium-avatar{width:100%;height:190px;border-radius:13px;margin:0 0 15px;border:1px solid #45483e;font-size:42px;background:#292d23;color:var(--lime);display:grid;place-items:center;overflow:hidden;font-weight:900}
-.podium-card.place-1 .podium-avatar{height:230px;border-color:#8a5429}
-.podium-avatar img{width:100%;height:100%;object-fit:cover}
-.podium-name{font-weight:950;font-size:20px;line-height:1.15;margin:0 0 7px}
-.podium-card.place-1 .podium-name{font-size:25px}
-.podium-score{color:var(--lime);font-weight:950;font-size:15px}
-.podium-movement{position:absolute;top:15px;right:15px;border-radius:999px;padding:6px 9px;font-size:10px;font-weight:950;letter-spacing:.4px;border:1px solid #3e4b3f;background:#1a261c;color:#78d68d}
-.podium-movement.down{border-color:#5b3434;background:#29191a;color:#ff7777}
-.podium-movement.neutral{border-color:#46483f;background:#292b26;color:#b7b8ad}
-@media(max-width:720px){.podium{grid-template-columns:1fr;gap:12px}.podium-card.place-1{order:1;transform:none;min-height:300px}.podium-card.place-2{order:2}.podium-card.place-3{order:3}.podium-avatar,.podium-card.place-1 .podium-avatar{height:230px}}
+  const css = `<style id="hash-podium-reference-design">
+/* Reference-style HASH RANKINGS podium */
+.podium-section{margin:28px 0 34px!important;padding:0!important;text-align:center}
+.podium-section .section-heading,.podium-section .podium-kicker{display:block!important;color:#ffb23e!important;font-size:11px!important;line-height:1!important;letter-spacing:2px!important;font-weight:900!important;text-transform:uppercase!important;margin:0 0 10px!important}
+.podium-section .podium-heading{display:block!important;color:#f4f5ef!important;font-size:30px!important;line-height:1.05!important;font-weight:950!important;letter-spacing:-1px!important;margin:0 0 10px!important}
+.podium-section .podium-subtitle{display:block!important;max-width:540px!important;margin:0 auto 20px!important;color:#73766f!important;font-size:12px!important;line-height:1.45!important}
+.podium-section .podium-subtitle::after{content:"";display:block;width:96px;height:1px;background:#5d4628;margin:18px auto 0}
+.podium{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)!important;gap:14px!important;align-items:end!important;padding:8px 0 0!important;max-width:900px!important;margin:0 auto!important}
+.podium-card{position:relative!important;display:flex!important;flex-direction:column!important;text-align:left!important;overflow:hidden!important;background:#0c0c0c!important;border:1px solid #565656!important;border-radius:8px!important;padding:0!important;min-height:414px!important;height:414px!important;box-shadow:none!important}
+.podium-card.place-1{order:2!important;border-color:#a8752c!important;min-height:414px!important;height:414px!important;padding:0!important;transform:translateY(-40px)!important;box-shadow:0 0 0 1px #6b4b1f55!important}
+.podium-card.place-2{order:1!important;transform:translateY(0)!important}
+.podium-card.place-3{order:3!important;border-color:#9b651e!important;transform:translateY(0)!important}
+.podium-place{height:50px!important;display:flex!important;align-items:center!important;padding:0 16px!important;margin:0!important;color:#ffb23e!important;font-size:12px!important;line-height:1!important;letter-spacing:1.4px!important;font-weight:900!important;text-transform:uppercase!important;border-bottom:1px solid #5a3e1c!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.podium-card.place-2 .podium-place{color:#e5e5e5!important;border-bottom-color:#414141!important}
+.podium-card.place-3 .podium-place{color:#ff8f22!important}
+.podium-avatar{position:relative!important;width:calc(100% - 10px)!important;height:calc(100% - 60px)!important;min-height:0!important;margin:5px!important;border-radius:5px!important;border:1px solid #555!important;background:#1c1c1c!important;overflow:hidden!important;display:grid!important;place-items:center!important;color:#ff922b!important;font-size:38px!important;font-weight:900!important}
+.podium-card.place-1 .podium-avatar{height:calc(100% - 60px)!important;border-color:#6b583d!important}
+.podium-avatar img{width:100%!important;height:100%!important;object-fit:cover!important;display:block!important}
+.podium-avatar::after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.78) 100%);pointer-events:none}
+.podium-name{position:absolute!important;left:20px!important;bottom:18px!important;z-index:3!important;margin:0!important;color:#fff!important;font-size:16px!important;line-height:1.1!important;font-weight:950!important;text-shadow:0 1px 8px #000!important}
+.podium-card.place-1 .podium-name{font-size:17px!important}
+.podium-score{position:absolute!important;left:20px!important;bottom:48px!important;z-index:3!important;margin:0!important;color:#ffbd56!important;font-size:11px!important;font-weight:700!important}
+.podium-score{font-size:0!important}
+.podium-score::after{font-size:11px!important;content:""}
+.podium-movement{position:absolute!important;top:12px!important;right:14px!important;z-index:5!important;border-radius:3px!important;padding:5px 8px!important;font-size:10px!important;line-height:1!important;font-weight:900!important;letter-spacing:.2px!important;border:0!important;background:#102d1c!important;color:#23c86d!important}
+.podium-movement.down{background:#351818!important;color:#ff4d4d!important}
+.podium-movement.neutral{background:#292929!important;color:#aaa!important}
+.podium-place::first-letter{color:inherit}
+@media(max-width:720px){
+  .podium{grid-template-columns:1fr!important;gap:12px!important;padding-top:0!important}
+  .podium-card,.podium-card.place-1{height:390px!important;min-height:390px!important;transform:none!important}
+  .podium-card.place-1{order:1!important}.podium-card.place-2{order:2!important}.podium-card.place-3{order:3!important}
+}
 </style>`;
 
-  html = html.replace('</head>', css + '\n</head>');
-
-  const oldFn = `function renderPodium(){
-           const top=sortedMembers().slice(0,3);
-           document.getElementById("podium").innerHTML=top.length?top.map((m,i)=>`
-            <div class="podium-card place-${i+1}">
-             <div class="podium-place">${["🥇 1ST PLACE","🥈 2ND PLACE","🥉 3RD PLACE"][i]}</div>
-             <div class="podium-avatar">${avatarContent(m)}</div>
-             <div class="podium-name">${esc(m.name)}</div>
-             <div class="podium-score">${Number(m.score)} pts</div>
-            </div>`).join(""):'<div class="feature-empty">Add members to fill the podium.</div>';
-          }`;
-
-  const newFn = `function renderPodium(){
-           const top=sortedMembers().slice(0,3);
-           const labels=["#1 · WINNER","#2 · RUNNER-UP","#3 · THIRD PLACE"];
-           document.getElementById("podium").innerHTML=top.length?top.map((m,i)=>{
-            const hasPrevious=m.previousScore!=null&&Number.isFinite(Number(m.previousScore));
-            const change=hasPrevious?Number(m.score)-Number(m.previousScore):0;
-            const movement=!hasPrevious?"NEW":change>0?`▲ +${change}`:change<0?`▼ ${change}`:"—";
-            const movementClass=!hasPrevious?"neutral":change>0?"":"down";
-            return `<div class="podium-card place-${i+1}">
-             <div class="podium-movement ${movementClass}">${movement}</div>
-             <div class="podium-place">${labels[i]}</div>
-             <div class="podium-avatar">${avatarContent(m)}</div>
-             <div class="podium-name">${esc(m.name)}</div>
-             <div class="podium-score">${Number(m.score)} POINTS</div>
-            </div>`;
-           }).join(""):'<div class="feature-empty">Add members to fill the podium.</div>';
-          }`;
-
-  if (html.includes(oldFn)) html = html.replace(oldFn, newFn);
-
-  const fallbackScript = `<script id="hash-podium-redesign-fallback">
+  const script = `<script id="hash-podium-reference-script">
 (function(){
-  function enhance(){
+  function update(){
     const section=document.querySelector('.podium-section');
     const podium=document.getElementById('podium');
-    if(!section||!podium||!podium.children.length)return;
-    if(!section.querySelector('.podium-kicker')){
-      const heading=section.querySelector('.section-heading');
-      if(heading){heading.className='podium-kicker';heading.textContent='♛ THIS CYCLE';}
+    if(!section||!podium)return;
+
+    let kicker=section.querySelector('.podium-kicker');
+    if(!kicker){
+      kicker=section.querySelector('.section-heading');
+      if(kicker){kicker.className='podium-kicker';}
     }
-    if(!section.querySelector('.podium-heading')){
-      const h=document.createElement('h2');h.className='podium-heading';h.textContent='The Podium';section.insertBefore(h,podium);
+    if(kicker) kicker.textContent='♕ THIS CYCLE';
+
+    let heading=section.querySelector('.podium-heading');
+    if(!heading){
+      heading=document.createElement('h2');
+      heading.className='podium-heading';
+      const anchor=kicker||section.firstElementChild;
+      if(anchor) anchor.after(heading); else section.prepend(heading);
     }
-    [...podium.children].slice(0,3).forEach((card,i)=>{
-      if(card.querySelector('.podium-movement'))return;
-      card.classList.add(`place-${i+1}`);
-      const badge=document.createElement('div');badge.className='podium-movement neutral';badge.textContent='THIS CYCLE';card.appendChild(badge);
+    heading.textContent='The Podium';
+
+    let subtitle=section.querySelector('.podium-subtitle');
+    if(!subtitle){
+      subtitle=document.createElement('p');
+      subtitle.className='podium-subtitle';
+      heading.after(subtitle);
+    }
+    subtitle.textContent='The three highest placements of the published cycle, with their score and recent trajectory.';
+
+    const cards=[...podium.querySelectorAll('.podium-card')].slice(0,3);
+    const labels=['WINNER','RUNNER UP','THIRD'];
+    cards.forEach(function(card,i){
+      card.classList.remove('place-1','place-2','place-3');
+      card.classList.add('place-'+(i+1));
+      const place=card.querySelector('.podium-place');
+      if(place) place.textContent=labels[i];
+      const score=card.querySelector('.podium-score');
+      if(score) score.setAttribute('aria-hidden','true');
+      let avatar=card.querySelector('.podium-avatar');
+      if(avatar){
+        const img=avatar.querySelector('img');
+        if(img) img.loading='eager';
+      }
     });
   }
-  const observer=new MutationObserver(enhance);
+  const observer=new MutationObserver(update);
   observer.observe(document.documentElement,{childList:true,subtree:true});
-  enhance();
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',update); else update();
 })();
 </script>`;
 
-  html = html.replace('</body>', fallbackScript + '\n</body>');
+  html = html.replace('</head>', css + '\n</head>');
+  html = html.replace('</body>', script + '\n</body>');
 
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
