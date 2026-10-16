@@ -1404,7 +1404,7 @@ document.getElementById("menuProfileBtn").addEventListener("click",()=>{document
 document.getElementById("adminPanelBtn").addEventListener("click",()=>{
  document.getElementById("accountMenu").hidden=true;document.getElementById("menuToggle").setAttribute("aria-expanded","false");
  if(!isAdmin){alert("Sign in with the admin account to open the admin panel.");return}
- renderCommunityVote();document.getElementById("communityAdminDialog").showModal();
+ if(!document.getElementById("communityTargetList").children.length)renderCommunityVote();document.getElementById("communityAdminDialog").showModal();
 });
 document.getElementById("closeCommunityAdminBtn").addEventListener("click",()=>document.getElementById("communityAdminDialog").close());
 document.getElementById("adminAccessBtn").addEventListener("click",async()=>{
