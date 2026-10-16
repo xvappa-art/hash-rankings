@@ -606,6 +606,12 @@ function renderMovements(){
  document.getElementById("drops").innerHTML=drops.length?drops.map(x=>row(x.member,x.change)).join(""):'<div class="feature-empty">No drops in the current 24-hour cycle.</div>';
  renderMovementTimers();
 }
+let lastMovementCycle=Math.floor(Date.now()/MOVEMENT_CYCLE_MS);
+setInterval(()=>{
+ renderMovementTimers();
+ const cycle=Math.floor(Date.now()/MOVEMENT_CYCLE_MS);
+ if(cycle!==lastMovementCycle){lastMovementCycle=cycle;renderMovements()}
+},1000);
 
 function render(){
  renderPodium();renderMovements();renderHallOfFame();
