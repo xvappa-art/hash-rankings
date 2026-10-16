@@ -184,6 +184,20 @@ dialog h2{margin:0 0 18px}
 .community-target{display:grid;grid-template-columns:auto 42px minmax(0,1fr) minmax(145px,190px) minmax(110px,140px);align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px}.community-target-photo{width:42px;height:42px;border-radius:10px;overflow:hidden;background:var(--panel);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--lime);flex-shrink:0}.community-target-photo img{width:100%;height:100%;object-fit:cover}
 .community-target input[type=checkbox]{width:auto;accent-color:var(--lime)}
 .community-target-name{font-weight:800;overflow-wrap:anywhere}
+.community-figures-section{margin:22px 0 26px}
+.community-figures-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-top:14px}
+.community-figure-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.community-figure-photo{width:100%;height:180px;background:var(--panel2);display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--lime);font-size:42px;font-weight:900}
+.community-figure-photo img{width:100%;height:100%;object-fit:cover}
+.community-figure-body{padding:13px;display:flex;flex-direction:column;gap:8px;flex:1}
+.community-figure-name{font-size:18px;font-weight:900;overflow-wrap:anywhere}
+.community-figure-tags{display:flex;flex-wrap:wrap;gap:5px}
+.community-figure-tag{font-size:11px;border:1px solid var(--border);border-radius:99px;padding:3px 7px;color:var(--muted)}
+.community-figure-overview{font-size:13px;color:var(--muted);line-height:1.45;overflow-wrap:anywhere}
+.community-figure-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:8px}
+.community-figure-select{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--lime)}
+.community-figure-select input{width:auto;accent-color:var(--lime)}
+.community-figure-card .btn{align-self:flex-start}
 .community-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .community-result{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px}.feature-title.rising-title{color:#2fbf65}.feature-title.overrated-title{color:#ef4444}
 .community-result-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}.community-result-row.rising-leader{background:rgba(65,190,105,.13);border:1px solid rgba(65,190,105,.55);border-radius:10px;padding:10px;margin:5px 0}.community-result-row.overrated-leader{background:rgba(230,65,65,.13);border:1px solid rgba(230,65,65,.58);border-radius:10px;padding:10px;margin:5px 0}.community-result-row.rising-result .community-result-count{color:#2fbf65}.community-result-row.overrated-result .community-result-count{color:#ef4444}.community-result-row.rising-leader .community-result-rank{color:#2fbf65}.community-result-row.overrated-leader .community-result-rank{color:#ef4444}
@@ -283,6 +297,11 @@ dialog h2{margin:0 0 18px}
       <div class="stat"><strong id="communityBotTotal">0</strong><small>SIMULATED BOT VOTES</small></div>
       <div class="stat"><strong id="communityCycleClock">—</strong><small>VOTING CYCLE RESETS IN</small></div>
     </div>
+    <section class="community-figures-section">
+      <div class="section-heading">SELECT FIGURES TO VOTE ON</div>
+      <p class="muted">Browse each figure's photo and profile details. Admin can select figures here, then set vote categories and simulated vote counts in the three-line menu → Admin panel.</p>
+      <div id="communityFiguresGrid" class="community-figures-grid"></div>
+    </section>
     <div class="community-results">
       <div class="community-result"><div class="feature-title rising-title">📈 TOP RISING</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityRisingResults"></div></div>
       <div class="community-result"><div class="feature-title overrated-title">👎 MOST OVERRATED</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityOverratedResults"></div></div>
@@ -747,6 +766,22 @@ document.getElementById("newsTab").addEventListener("click",()=>showPage("news")
 document.getElementById("hallOfFameTab").addEventListener("click",()=>showPage("hall"));
 document.getElementById("communityVoteTab").addEventListener("click",()=>showPage("community"));
 document.getElementById("saveCommunityVoteConfig").addEventListener("click",saveCommunityVoteSetup);
+document.getElementById("communityFiguresGrid").addEventListener("change",event=>{
+ const input=event.target.closest(".community-figure-enabled");if(!input||!isAdmin)return;
+ const id=input.dataset.communityFigureId;
+ const target=document.querySelector('.community-target-enabled[data-community-id="'+CSS.escape(id)+'"]');
+ if(target)target.checked=input.checked;
+ const card=input.closest(".community-figure-card");const label=card&&card.querySelector(".community-figure-select");
+ if(label)label.lastChild.textContent=input.checked?" Selected for poll":" Select for poll";
+});
+document.getElementById("communityFiguresGrid").addEventListener("click",event=>{
+ const button=event.target.closest("[data-community-profile]");if(button)openProfile(button.dataset.communityProfile);
+});
+document.getElementById("communityTargetList").addEventListener("change",event=>{
+ const input=event.target.closest(".community-target-enabled");if(!input)return;
+ const card=document.querySelector('.community-figure-enabled[data-community-figure-id="'+CSS.escape(input.dataset.communityId)+'"]');
+ if(card){card.checked=input.checked;const label=card.closest(".community-figure-card")?.querySelector(".community-figure-select");if(label)label.lastChild.textContent=input.checked?" Selected for poll":" Select for poll";}
+});
 document.getElementById("resetCommunityVoteCycle").addEventListener("click",()=>{
  if(!isAdmin){alert("Only the admin can reset the voting cycle.");return}
  communityVoteConfig.cycleEndsAt=Date.now()+Number(communityVoteConfig.cycleLength||7)*86400000;
@@ -1011,6 +1046,14 @@ function renderCommunityVote(){
  const selected=communityTargetMap();
  const list=document.getElementById("communityTargetList");
  const active=members.filter(m=>!m.hallOfFame).slice().sort((a,b)=>a.name.localeCompare(b.name));
+ const figuresGrid=document.getElementById("communityFiguresGrid");
+ figuresGrid.innerHTML=active.length?active.map(m=>{
+  const v=selected[m.id]||{rising:false,overrated:false};
+  const tags=(Array.isArray(m.tags)?m.tags:[]).slice(0,5);
+  const description=m.overview||m.note||m.title||"No profile description added yet.";
+  const photo=avatarContent(m);
+  return '<article class="community-figure-card"><div class="community-figure-photo">'+photo+'</div><div class="community-figure-body"><div class="community-figure-name">'+esc(m.name)+'</div><div class="muted">Score '+esc(m.score)+' / 100'+(m.title?' · '+esc(m.title):'')+'</div>'+(tags.length?'<div class="community-figure-tags">'+tags.map(tag=>'<span class="community-figure-tag">'+esc(tag)+'</span>').join('')+'</div>':'')+'<div class="community-figure-overview">'+esc(description)+'</div><div class="community-figure-footer"><label class="community-figure-select"><input type="checkbox" class="community-figure-enabled" data-community-figure-id="'+esc(m.id)+'" '+((v.rising||v.overrated)?'checked':'')+(isAdmin?'':' disabled')+'> '+((v.rising||v.overrated)?'Selected for poll':'Select for poll')+'</label><button type="button" class="btn" data-community-profile="'+esc(m.id)+'">View profile</button></div></div></article>';
+ }).join(""):'<div class="empty">No figures yet. Add profiles to the leaderboard first.</div>';
  list.innerHTML=active.length?active.map(m=>{
   const v=selected[m.id]||{rising:false,overrated:false};
    return '<div class="community-target"><input type="checkbox" class="community-target-enabled" data-community-id="'+esc(m.id)+'" aria-label="Select '+esc(m.name)+'" '+((v.rising||v.overrated)?'checked':'')+(isAdmin?'':' disabled')+'><div class="community-target-photo">'+avatarContent(m)+'</div><div class="community-target-name">'+esc(m.name)+'<div class="muted">Score '+esc(m.score)+'</div></div><div><label class="muted" for="community-kind-'+esc(m.id)+'">Vote category</label><select id="community-kind-'+esc(m.id)+'" class="community-target-kind" data-community-kind="'+esc(m.id)+'" '+(isAdmin?'':'disabled')+'><option value="both" '+(v.rising&&v.overrated?'selected':'')+'>Both categories</option><option value="rising" '+(v.rising&&!v.overrated?'selected':'')+'>Top Rising</option><option value="overrated" '+(v.overrated&&!v.rising?'selected':'')+'>Most Overrated</option></select></div><div class="community-count-control"><label class="muted" for="community-count-'+esc(m.id)+'">Bots for this person</label><input id="community-count-'+esc(m.id)+'" class="community-target-count" data-community-count="'+esc(m.id)+'" type="number" min="1" max="10000" value="'+esc(v.botCount||communityVoteConfig.botCount||100)+'" '+(isAdmin?'':'disabled')+'></div></div>';
