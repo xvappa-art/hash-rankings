@@ -203,6 +203,7 @@ dialog h2{margin:0 0 18px}
     <div class="menu-popover" id="accountMenu" hidden>
       <div class="menu-account" id="menuAccount"><strong>HASH RANKINGS</strong><span class="muted">Join the community</span></div>
       <button class="btn primary" id="menuProfileBtn" type="button">My profile</button>
+      <button class="btn" id="adminPanelBtn" type="button" hidden>Admin panel</button>
       <button class="btn" id="adminAccessBtn" type="button">Sign in / Sign up</button>
     </div>
   </div>
@@ -281,20 +282,6 @@ dialog h2{margin:0 0 18px}
     <div class="stats">
       <div class="stat"><strong id="communityBotTotal">0</strong><small>SIMULATED BOT VOTES</small></div>
       <div class="stat"><strong id="communityCycleClock">—</strong><small>VOTING CYCLE RESETS IN</small></div>
-    </div>
-    <div class="community-panel">
-      <div class="section-heading">⚙️ ADMIN VOTE CONTROL</div>
-      <div id="communityAdminNote" class="muted">Only the admin can configure simulated votes.</div>
-      <div class="community-grid" style="margin-top:14px">
-        <div><label for="communityBotCount">Default bots per person</label><input id="communityBotCount" type="number" min="1" max="10000" value="100"></div>
-        <div><label for="communityCycleLength">Voting cycle length</label><select id="communityCycleLength"><option value="1">24 hours</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></div>
-      </div>
-      <div class="section-heading" style="margin-top:18px">CHOOSE MULTIPLE PEOPLE AND VOTE TYPES</div>
-      <div class="muted">Select each person, choose their category, and set their individual bot count. For example, one person can get 12 votes and another 51.</div>
-      <div id="communityTargetList" class="community-targets"></div>
-      <button class="btn primary" id="saveCommunityVoteConfig" type="button">Save simulated vote setup</button>
-      <button class="btn" id="resetCommunityVoteCycle" type="button">Reset voting cycle now</button>
-      <div id="communitySaveStatus" class="muted" style="margin-top:10px"></div>
     </div>
     <div class="community-results">
       <div class="community-result"><div class="feature-title rising-title">📈 TOP RISING</div><div class="muted">Simulated poll results · not real community votes</div><div id="communityRisingResults"></div></div>
@@ -399,6 +386,26 @@ dialog h2{margin:0 0 18px}
   <div class="help">Your nickname and profile picture will appear on your comments. This account profile is separate from admin-managed ranking scores.</div>
   <div class="form-buttons"><button class="btn" type="button" id="cancelUserProfileBtn">Cancel</button><button class="btn primary" type="submit">Save profile</button></div>
 </form>
+</dialog>
+
+<dialog id="communityAdminDialog">
+  <h2>Community Vote Admin Panel</h2>
+  <p class="help">Configure simulated bot votes for each person. These are simulations, not real visitor votes.</p>
+  <div class="community-panel">
+      <div class="section-heading">⚙️ ADMIN VOTE CONTROL</div>
+      <div id="communityAdminNote" class="muted">Only the admin can configure simulated votes.</div>
+      <div class="community-grid" style="margin-top:14px">
+        <div><label for="communityBotCount">Default bots per person</label><input id="communityBotCount" type="number" min="1" max="10000" value="100"></div>
+        <div><label for="communityCycleLength">Voting cycle length</label><select id="communityCycleLength"><option value="1">24 hours</option><option value="3">3 days</option><option value="7" selected>7 days</option><option value="14">14 days</option><option value="30">30 days</option></select></div>
+      </div>
+      <div class="section-heading" style="margin-top:18px">CHOOSE MULTIPLE PEOPLE AND VOTE TYPES</div>
+      <div class="muted">Select each person, choose their category, and set their individual bot count. For example, one person can get 12 votes and another 51.</div>
+      <div id="communityTargetList" class="community-targets"></div>
+      <button class="btn primary" id="saveCommunityVoteConfig" type="button">Save simulated vote setup</button>
+      <button class="btn" id="resetCommunityVoteCycle" type="button">Reset voting cycle now</button>
+      <div id="communitySaveStatus" class="muted" style="margin-top:10px"></div>
+    </div>
+  <div class="form-buttons"><button class="btn" id="closeCommunityAdminBtn" type="button">Close</button></div>
 </dialog>
 
 <dialog id="newsDialog">
@@ -1236,6 +1243,8 @@ function applyAdminUI(){
  if(account)account.innerHTML=currentUserEmail?`<strong>${esc(currentUserProfile.nickname||currentUserEmail.split("@")[0])}</strong><span class="muted">${esc(currentUserEmail)}</span>`:'<strong>HASH RANKINGS</strong><span class="muted">Join the community</span>';
  const profileButton=document.getElementById("menuProfileBtn");
  if(profileButton)profileButton.disabled=!currentUserEmail;
+ const adminPanelButton=document.getElementById("adminPanelBtn");
+ if(adminPanelButton)adminPanelButton.hidden=!isAdmin;
  render();renderNews();renderComments();
  if(!document.getElementById("communityVotePage").classList.contains("hidden"))renderCommunityVote();
 }
@@ -1349,6 +1358,12 @@ document.getElementById("menuToggle").addEventListener("click",()=>{
 });
 document.addEventListener("click",event=>{if(!event.target.closest(".header-menu")){document.getElementById("accountMenu").hidden=true;document.getElementById("menuToggle").setAttribute("aria-expanded","false")}});
 document.getElementById("menuProfileBtn").addEventListener("click",()=>{document.getElementById("accountMenu").hidden=true;document.getElementById("menuToggle").setAttribute("aria-expanded","false");openUserProfile()});
+document.getElementById("adminPanelBtn").addEventListener("click",()=>{
+ document.getElementById("accountMenu").hidden=true;document.getElementById("menuToggle").setAttribute("aria-expanded","false");
+ if(!isAdmin){alert("Sign in with the admin account to open the admin panel.");return}
+ renderCommunityVote();document.getElementById("communityAdminDialog").showModal();
+});
+document.getElementById("closeCommunityAdminBtn").addEventListener("click",()=>document.getElementById("communityAdminDialog").close());
 document.getElementById("adminAccessBtn").addEventListener("click",async()=>{
  document.getElementById("accountMenu").hidden=true;document.getElementById("menuToggle").setAttribute("aria-expanded","false");
  if(!supabaseClient){alert("Sign-in is still loading. Please wait a moment and try again.");return}
