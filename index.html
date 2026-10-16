@@ -1023,7 +1023,7 @@ function renderCommunityVote(){
  const results=generateCommunityVotes();
  document.getElementById("communityBotTotal").textContent=SIMULATED_BOT_COUNT.toLocaleString();
  document.getElementById("communityRisingResults").innerHTML=communityResultMarkup(results.slice(0,1),"rising");
- document.getElementById("communityOverratedResults").innerHTML=communityResultMarkup(results,"overrated");
+ document.getElementById("communityOverratedResults").innerHTML=communityResultMarkup(results,"full");
  communityRenderedCycle=communityCycleIndex();
  updateCommunityCycleClock();
  if(communityCycleTimer)clearInterval(communityCycleTimer);
